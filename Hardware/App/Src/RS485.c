@@ -116,3 +116,19 @@ uint16_t modbus_crc16(uint16_t length, uint8_t *data)
     }
     return crc;
 }
+
+bool modbus_crc_compare(uint16_t length, uint8_t *data, uint8_t *compareData)
+{
+    uint16_t crc;
+    uint8_t crc_data[2];
+
+    crc = modbus_crc16(length, data);
+    crc_data[1] = crc >>8;
+    crc_data[0] = (crc & 0x00FF);
+
+    if(crc_data[0]== compareData[0] && crc_data[1] == compareData[1])
+    {
+        return true;
+    }
+    return false;
+}

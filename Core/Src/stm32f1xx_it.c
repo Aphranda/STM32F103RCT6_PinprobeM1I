@@ -303,11 +303,32 @@ void DMA1_Channel5_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
+  if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE))
+  {
+    HAL_UART_DMAStop(&huart1); // stop DMA
 
+    // data length = MAX len - 
+    uint32_t data_length = MAX_RX_LEN - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx); 
+
+    // double cache
+    if(Usart1_RX_BUF1_IsReady)
+    {
+      usart1_buff_IsReady = Usart1_RX_BUF2;
+      usart1_buff_Occupied = Usart1_RX_BUF1;
+      Usart1_RX_BUF1_IsReady = 0;
+    }
+    else
+    {
+      usart1_buff_IsReady = Usart1_RX_BUF1;
+      usart1_buff_Occupied = Usart1_RX_BUF2;
+      Usart1_RX_BUF1_IsReady = 1;
+    }
+    memset((uint8_t *)usart1_buff_Occupied, 0, MAX_RX_LEN);	 // clear receive cache
+  } 
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-
+  HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN); // restart receive DMA
   /* USER CODE END USART1_IRQn 1 */
 }
 
@@ -317,11 +338,32 @@ void USART1_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
+  if (RESET != __HAL_UART_GET_FLAG(&huart3, UART_FLAG_IDLE))
+  {
+    HAL_UART_DMAStop(&huart3); // stop DMA
 
+    uint32_t data_length = MAX_RX_LEN - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx); 
+  
+
+  // double cache
+    if(Usart3_RX_BUF1_IsReady)
+    {
+      usart3_buff_IsReady = Usart3_RX_BUF2;
+      usart3_buff_Occupied = Usart3_RX_BUF1;
+      Usart3_RX_BUF1_IsReady = 0;
+    }
+    else
+    {
+      usart3_buff_IsReady = Usart3_RX_BUF1;
+      usart3_buff_Occupied = Usart3_RX_BUF2;
+      Usart3_RX_BUF1_IsReady = 1;
+    }
+    memset((uint8_t *)usart3_buff_Occupied, 0, MAX_RX_LEN);	 // clear receive cache
+  }
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
-
+  HAL_UART_Receive_DMA(&huart3, usart3_buff_Occupied, MAX_RX_LEN); // restart receive DMA
   /* USER CODE END USART3_IRQn 1 */
 }
 
@@ -332,6 +374,7 @@ void DMA_Usart1_Tx_Data(uint8_t *buffer, uint16_t size) // DMA Usart1 Tx Data
   Usart1_TX_Flag = 1;
   HAL_UART_Transmit_DMA(&huart1, buffer, size);
 }
+
 void DMA_Usart3_Tx_Data(uint8_t *buffer, uint16_t size) // DMA Usart3 Tx Data
 {
   Usart3_Tx_Wait();
@@ -360,6 +403,7 @@ void Usart3_Tx_Wait(void) // Transmit Delay
       return;
   }
 }
+
 void U1_Printf(char *format, ...) // Usart1 print
 {
   va_list arg_ptr;
@@ -374,6 +418,7 @@ void U1_Printf(char *format, ...) // Usart1 print
 
   DMA_Usart1_Tx_Data(Usart1_TX_BUF, strlen((const char *)Usart1_TX_BUF)); 
 }
+
 void U3_Printf(char *format, ...) // Usart3 print
 {
   va_list arg_ptr;

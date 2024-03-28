@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "RS485.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,7 +35,14 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+extern DMA_HandleTypeDef hdma_usart1_tx;
+extern DMA_HandleTypeDef hdma_usart3_tx;
 
+extern uint8_t* usart1_buff_IsReady;
+extern uint8_t* usart1_buff_Occupied;
+
+extern uint8_t* usart3_buff_IsReady;
+extern uint8_t* usart3_buff_Occupied;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -94,7 +101,19 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+  __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
 
+  __HAL_DMA_ENABLE_IT(&hdma_usart1_tx, DMA_IT_TC);
+  __HAL_DMA_ENABLE_IT(&hdma_usart3_tx, DMA_IT_TC);
+
+  __HAL_UART_CLEAR_IDLEFLAG(&huart1);
+  __HAL_UART_CLEAR_IDLEFLAG(&huart3);
+
+  HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN);
+  HAL_UART_Receive_DMA(&huart3, usart3_buff_Occupied, MAX_RX_LEN);
+
+  uint8_t IN_OUT_Flag = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,8 +121,43 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
+    HAL_Delay(1000);
+    uint8_t* data;
+    uint8_t crcData[2];
+    uint8_t InputIOData[5];
+    uint8_t OutputIOData[5];
+
+    if(IN_OUT_Flag == 0)
+    {
+      ReadIO(2, data);
+    }
+    
+    memcpy(InputIOData, usart3_buff_IsReady, 5);
+
+    crcData[0] = usart3_buff_IsReady[5];
+    crcData[1] = usart3_buff_IsReady[6];
+
+    if(modbus_crc_compare(5, InputIOData, crcData))
+    {
+      IN_OUT_Flag = 1;
+    }
+
+    if(IN_OUT_Flag == 1)
+    {
+      ReadIO(1, data);
+    }
+    
+    memcpy(OutputIOData, usart3_buff_IsReady, 5);
+    crcData[0] = usart3_buff_IsReady[5];
+    crcData[1] = usart3_buff_IsReady[6];
+    if(modbus_crc_compare(5, OutputIOData ,crcData))
+    {
+      U1_Printf("Hello world!\r\n");
+
+      IN_OUT_Flag = 0;
+    }
+    HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */
 }
