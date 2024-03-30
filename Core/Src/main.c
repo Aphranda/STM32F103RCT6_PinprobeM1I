@@ -113,7 +113,7 @@ int main(void)
   HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN);
   HAL_UART_Receive_DMA(&huart3, usart3_buff_Occupied, MAX_RX_LEN);
 
-  uint8_t IN_OUT_Flag = 0;
+ 
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,41 +122,11 @@ int main(void)
   {
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
+    uint32_t IOStatus;
+    uint32_t IOstatusCopy;
     HAL_Delay(1000);
-    uint8_t* data;
-    uint8_t crcData[2];
-    uint8_t InputIOData[5];
-    uint8_t OutputIOData[5];
-
-    if(IN_OUT_Flag == 0)
-    {
-      ReadIO(2, data);
-    }
-    
-    memcpy(InputIOData, usart3_buff_IsReady, 5);
-
-    crcData[0] = usart3_buff_IsReady[5];
-    crcData[1] = usart3_buff_IsReady[6];
-
-    if(modbus_crc_compare(5, InputIOData, crcData))
-    {
-      IN_OUT_Flag = 1;
-    }
-
-    if(IN_OUT_Flag == 1)
-    {
-      ReadIO(1, data);
-    }
-    
-    memcpy(OutputIOData, usart3_buff_IsReady, 5);
-    crcData[0] = usart3_buff_IsReady[5];
-    crcData[1] = usart3_buff_IsReady[6];
-    if(modbus_crc_compare(5, OutputIOData ,crcData))
-    {
-      U1_Printf("Hello world!\r\n");
-
-      IN_OUT_Flag = 0;
-    }
+    IOStatus =  BsmIOStatus(10);
+    IOstatusCopy = IOStatus;
     HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */
@@ -203,7 +173,56 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint32_t BsmIOStatus(uint8_t checkNum)
+{
+  uint8_t IO_status_count = 0;      // IO Status check num
+  uint8_t IN_OUT_Flag = 0;          // First Reading Input IO Status, then Reading Output IO Status.
+  while (IO_status_count<checkNum)
+  {
+    uint8_t* data;
+    uint32_t IOStatus;              // return IOStatus
+    uint8_t crcData[2];             // compare received crcData with calculate crc data 
+    uint8_t InputIOData[5];         // Input IO Status
+    uint8_t OutputIOData[5];        // Output IO Status
 
+    uint8_t InputTrueData[5];
+    uint8_t OutputTrueData[5];
+
+    if(IN_OUT_Flag == 0)
+    {
+      ReadIO(2, data);
+    }
+    
+    memcpy(InputIOData, usart3_buff_IsReady, 5);
+
+    crcData[0] = usart3_buff_IsReady[5];
+    crcData[1] = usart3_buff_IsReady[6];
+
+    if(modbus_crc_compare(5, InputIOData, crcData))
+    {
+      memcpy(InputTrueData, InputIOData, 5);
+      IN_OUT_Flag = 1;
+    }
+    
+    if(IN_OUT_Flag == 1)
+    {
+      ReadIO(1, data);
+    }
+    
+    memcpy(OutputIOData, usart3_buff_IsReady, 5);
+    crcData[0] = usart3_buff_IsReady[5];
+    crcData[1] = usart3_buff_IsReady[6];
+    if(modbus_crc_compare(5, OutputIOData ,crcData))
+    {
+      memcpy(OutputTrueData, OutputIOData, 5);
+      IN_OUT_Flag = 0;
+      IOStatus = (InputTrueData[3]<<24)|(InputTrueData[4]<<16)|(OutputTrueData[3]<<8)|(OutputTrueData[4]);
+      return IOStatus;
+    }
+    IO_status_count++;
+  }
+  return 0xffff;
+}
 /* USER CODE END 4 */
 
 /**

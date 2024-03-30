@@ -97,6 +97,7 @@ uint8_t* IOReadOrder(uint8_t index, uint16_t num){
     return stress_send;
 }
 
+
 uint16_t modbus_crc16(uint16_t length, uint8_t *data)
 {
     uint16_t crc = 0xffff;

@@ -41,7 +41,8 @@
             "RFLINK",
             "STATEMACHINE",
             "USART"
-        ]
+        ],
+        "cortex-debug.variableUseNaturalFormat": false
     },
     "extensions": {
         "recommendations": [
