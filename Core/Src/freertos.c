@@ -25,7 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "scpi/scpi.h"
+#include "scpi-def.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
