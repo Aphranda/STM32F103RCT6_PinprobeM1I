@@ -27,6 +27,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "RS485.h"
+#include "scpi/scpi.h"
+#include "scpi-def.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,14 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-extern DMA_HandleTypeDef hdma_usart1_tx;
-extern DMA_HandleTypeDef hdma_usart3_tx;
 
-extern uint8_t* usart1_buff_IsReady;
-extern uint8_t* usart1_buff_Occupied;
-
-extern uint8_t* usart3_buff_IsReady;
-extern uint8_t* usart3_buff_Occupied;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -66,7 +61,47 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+size_t SCPI_Write(scpi_t * context, const char * data, size_t len) {
+    (void) context;	
+	if (len > 0)
+	{		
+		for (int i = 0;i < len;i++)
+		{
+			osMessageQueuePut(cmdTxQueueHandle,&data[i],NULL,0U);
+		}
+	}
+	return len;
+}
 
+scpi_result_t SCPI_Flush(scpi_t * context) {
+    (void) context;
+
+    return SCPI_RES_OK;
+}
+
+scpi_result_t SCPI_Control(scpi_t * context, scpi_ctrl_name_t ctrl, scpi_reg_val_t val) {
+    (void) context;
+
+    if (SCPI_CTRL_SRQ == ctrl) {
+        printf("**SRQ: 0x%X (%d)\r\n", val, val);
+    } else {
+        printf("**CTRL %02x: 0x%X (%d)\r\n", ctrl, val, val);
+    }
+    return SCPI_RES_OK;
+}
+
+scpi_result_t SCPI_Reset(scpi_t * context) {
+    (void) context;
+
+    printf("**Reset\r\n");
+    return SCPI_RES_OK;
+}
+
+scpi_result_t SCPI_SystemCommTcpipControlQ(scpi_t * context) {
+    (void) context;
+
+    return SCPI_RES_ERR;
+}
 /* USER CODE END 0 */
 
 /**

@@ -32,6 +32,8 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f1xx_it.h"
+#include "stdio.h"
+#include "cmsis_os2.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -41,7 +43,17 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern osMessageQueueId_t cmdRxQueueHandle;
+extern osMessageQueueId_t cmdTxQueueHandle;
 
+extern DMA_HandleTypeDef hdma_usart1_tx;
+extern DMA_HandleTypeDef hdma_usart3_tx;
+
+extern uint8_t* usart1_buff_IsReady;
+extern uint8_t* usart1_buff_Occupied;
+
+extern uint8_t* usart3_buff_IsReady;
+extern uint8_t* usart3_buff_Occupied;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

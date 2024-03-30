@@ -181,10 +181,28 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  for(;;)
+	uint8_t data;
+	osStatus_t status;
+	SCPI_Init(&scpi_context,
+					scpi_commands,
+					&scpi_interface,
+					scpi_units_def,
+					SCPI_IDN1, SCPI_IDN2, SCPI_IDN3, SCPI_IDN4,
+					scpi_input_buffer, SCPI_INPUT_BUFFER_LENGTH,
+					scpi_error_queue_data, SCPI_ERROR_QUEUE_SIZE);	
+	for(;;)
   {
+		do
+		{
+			status = osMessageQueueGet(cmdRxQueueHandle, &data, NULL, 0U);
+			if (status == osOK)
+			{
+				SCPI_Input(&scpi_context, &data, 1);
+			}
+		}while(status == osOK);
     osDelay(1);
   }
+  //process_command_task();
   /* USER CODE END StartDefaultTask */
 }
 
@@ -201,6 +219,7 @@ void StartTaskParseCmd(void *argument)
   /* Infinite loop */
   for(;;)
   {
+    FeedWDG();
     osDelay(1);
   }
   /* USER CODE END StartTaskParseCmd */
