@@ -22,6 +22,9 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include "scpi/scpi.h"
+#include "scpi-def.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -303,12 +306,13 @@ void DMA1_Channel5_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
+  uint32_t data_length;
   if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE))
   {
     HAL_UART_DMAStop(&huart1); // stop DMA
 
     // data length = MAX len - 
-    uint32_t data_length = MAX_RX_LEN - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx); 
+    data_length = MAX_RX_LEN - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx); 
 
     // double cache
     if(Usart1_RX_BUF1_IsReady)
@@ -328,6 +332,7 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
+  SCPI_Input(&scpi_context, (const char *)usart1_buff_Occupied, MAX_RX_LEN);
   HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN); // restart receive DMA
   /* USER CODE END USART1_IRQn 1 */
 }
