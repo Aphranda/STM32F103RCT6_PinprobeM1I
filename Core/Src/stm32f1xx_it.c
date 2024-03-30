@@ -26,7 +26,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
+#include "FreeRTOS.h"
+#include "task.h"
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -304,6 +305,7 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
+  osMessageQueuePut(cmdRxQueueHandle,usart1_buff_Occupied,0U,0U);
   HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN); // restart receive DMA
   /* USER CODE END USART1_IRQn 1 */
 }
@@ -348,6 +350,7 @@ void DMA_Usart1_Tx_Data(uint8_t *buffer, uint16_t size) // DMA Usart1 Tx Data
 {
   Usart1_Tx_Wait();
   Usart1_TX_Flag = 1;
+  osMessageQueueGet(cmdTxQueueHandle, buffer, NULL, 0U);
   HAL_UART_Transmit_DMA(&huart1, buffer, size);
 }
 
@@ -391,7 +394,7 @@ void U1_Printf(char *format, ...) // Usart1 print
   vsnprintf((char *)Usart1_TX_BUF, MAX_TX_LEN + 1, format, arg_ptr);
 
   va_end(arg_ptr);
-
+  osMessageQueuePut(cmdTxQueueHandle,Usart1_TX_BUF,NULL,0U);
   DMA_Usart1_Tx_Data(Usart1_TX_BUF, strlen((const char *)Usart1_TX_BUF)); 
 }
 

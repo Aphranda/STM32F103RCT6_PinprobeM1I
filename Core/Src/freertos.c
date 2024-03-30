@@ -25,7 +25,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "scpi/scpi.h"
+#include "scpi-def.h"
+#include "cmsis_os2.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -70,16 +72,16 @@ const osThreadAttr_t taskFeedWD_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityRealtime,
 };
-/* Definitions for cmdRXQueue */
-osMessageQueueId_t cmdRXQueueHandle;
-uint8_t cmdRXQueueBuffer[ 512 * sizeof( uint8_t ) ];
+/* Definitions for cmdRxQueue */
+osMessageQueueId_t cmdRxQueueHandle;
+uint8_t cmdRxQueueBuffer[ 512 * sizeof( uint8_t ) ];
 osStaticMessageQDef_t cmdRXQueueControlBlock;
-const osMessageQueueAttr_t cmdRXQueue_attributes = {
-  .name = "cmdRXQueue",
+const osMessageQueueAttr_t cmdRxQueue_attributes = {
+  .name = "cmdRxQueue",
   .cb_mem = &cmdRXQueueControlBlock,
   .cb_size = sizeof(cmdRXQueueControlBlock),
-  .mq_mem = &cmdRXQueueBuffer,
-  .mq_size = sizeof(cmdRXQueueBuffer)
+  .mq_mem = &cmdRxQueueBuffer,
+  .mq_size = sizeof(cmdRxQueueBuffer)
 };
 /* Definitions for cmdTxQueue */
 osMessageQueueId_t cmdTxQueueHandle;
@@ -140,8 +142,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of cmdRXQueue */
-  cmdRXQueueHandle = osMessageQueueNew (512, sizeof(uint8_t), &cmdRXQueue_attributes);
+  /* creation of cmdRxQueue */
+  cmdRxQueueHandle = osMessageQueueNew (512, sizeof(uint8_t), &cmdRxQueue_attributes);
 
   /* creation of cmdTxQueue */
   cmdTxQueueHandle = osMessageQueueNew (512, sizeof(uint8_t), &cmdTxQueue_attributes);
@@ -181,6 +183,25 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
+  for(;;)
+  {
+    osDelay(100);
+  }
+  //process_command_task();
+  /* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_StartTaskParseCmd */
+/**
+* @brief Function implementing the taskParseCmd thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTaskParseCmd */
+void StartTaskParseCmd(void *argument)
+{
+  /* USER CODE BEGIN StartTaskParseCmd */
+  /* Infinite loop */
 	uint8_t data;
 	osStatus_t status;
 	SCPI_Init(&scpi_context,
@@ -202,26 +223,6 @@ void StartDefaultTask(void *argument)
 		}while(status == osOK);
     osDelay(1);
   }
-  //process_command_task();
-  /* USER CODE END StartDefaultTask */
-}
-
-/* USER CODE BEGIN Header_StartTaskParseCmd */
-/**
-* @brief Function implementing the taskParseCmd thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTaskParseCmd */
-void StartTaskParseCmd(void *argument)
-{
-  /* USER CODE BEGIN StartTaskParseCmd */
-  /* Infinite loop */
-  for(;;)
-  {
-    FeedWDG();
-    osDelay(1);
-  }
   /* USER CODE END StartTaskParseCmd */
 }
 
@@ -238,6 +239,7 @@ void StartTaskFeedWD(void *argument)
   /* Infinite loop */
   for(;;)
   {
+    FeedWDG();
     osDelay(1);
   }
   /* USER CODE END StartTaskFeedWD */
