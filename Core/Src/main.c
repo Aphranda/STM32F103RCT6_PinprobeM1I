@@ -103,13 +103,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-    SCPI_Init(&scpi_context,
-    scpi_commands,
-    &scpi_interface,
-    scpi_units_def,
-    SCPI_IDN1, SCPI_IDN2, SCPI_IDN3, SCPI_IDN4,
-    scpi_input_buffer, SCPI_INPUT_BUFFER_LENGTH,
-    scpi_error_queue_data, SCPI_ERROR_QUEUE_SIZE);
+
 
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
   __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
@@ -123,6 +117,14 @@ int main(void)
   HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN);
   HAL_UART_Receive_DMA(&huart3, usart3_buff_Occupied, MAX_RX_LEN);
 
+  SCPI_Init(&scpi_context,
+    scpi_commands,
+    &scpi_interface,
+    scpi_units_def,
+    SCPI_IDN1, SCPI_IDN2, SCPI_IDN3, SCPI_IDN4,
+    scpi_input_buffer, SCPI_INPUT_BUFFER_LENGTH,
+    scpi_error_queue_data, SCPI_ERROR_QUEUE_SIZE);
+
  
   /* USER CODE END 2 */
 
@@ -133,12 +135,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    
-    uint32_t IOStatus;
-    uint32_t IOstatusCopy;
-    HAL_Delay(1000);
-    IOStatus =  BsmIOStatus(10);
-    IOstatusCopy = IOStatus;
+    HAL_Delay(1);
+    // uint32_t IOStatus;
+    // uint32_t IOstatusCopy;
+    // HAL_Delay(1000);
+    // IOStatus =  BsmIOStatus(10);
+    // IOstatusCopy = IOStatus;
     HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */

@@ -39,6 +39,7 @@
             "modbus",
             "Pendable",
             "RFLINK",
+            "scpi",
             "STATEMACHINE",
             "USART"
         ],
