@@ -27,7 +27,10 @@
 /* USER CODE BEGIN Includes */
 #include "scpi/scpi.h"
 #include "scpi-def.h"
+<<<<<<< HEAD
 #include "cmsis_os2.h"
+=======
+>>>>>>> a4c44a9eea757592e00906e420baef93a413a40e
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
