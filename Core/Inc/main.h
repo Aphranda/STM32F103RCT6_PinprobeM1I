@@ -63,6 +63,8 @@ uint32_t BsmIOStatus(uint8_t checkNum);
 #define RF_C6_GPIO_Port GPIOA
 #define RF_C7_Pin GPIO_PIN_0
 #define RF_C7_GPIO_Port GPIOB
+#define RF_C8_Pin GPIO_PIN_1
+#define RF_C8_GPIO_Port GPIOB
 #define RF_C1_Pin GPIO_PIN_6
 #define RF_C1_GPIO_Port GPIOC
 #define RF_C2_Pin GPIO_PIN_7
