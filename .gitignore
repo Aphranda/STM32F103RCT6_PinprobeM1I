@@ -399,5 +399,4 @@ FodyWeavers.xsd
 .eide/*
 .pack/Keil/STM32F1xx_DFP.2.3.0/*
 build/*
-Drivers/*
 .clang-format
