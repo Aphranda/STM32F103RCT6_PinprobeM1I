@@ -45,6 +45,7 @@ size_t SCPI_Write(scpi_t *context, const char *data, size_t len)
 #ifdef SCPI_USE_SERIAL
     for (uint32_t i = 0; i < len; i++)
     {
+        //printf("hello");
         printf("%c", data[i]);
     }
 #endif

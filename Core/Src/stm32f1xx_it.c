@@ -332,7 +332,7 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-  SCPI_Input(&scpi_context, (const char *)usart1_buff_Occupied, MAX_RX_LEN);
+  SCPI_Input(&scpi_context, (const char *)usart1_buff_IsReady, data_length);
   HAL_UART_Receive_DMA(&huart1, usart1_buff_Occupied, MAX_RX_LEN); // restart receive DMA
   /* USER CODE END USART1_IRQn 1 */
 }

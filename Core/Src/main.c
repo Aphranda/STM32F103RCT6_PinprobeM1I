@@ -133,7 +133,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+    
     uint32_t IOStatus;
     uint32_t IOstatusCopy;
     HAL_Delay(1000);

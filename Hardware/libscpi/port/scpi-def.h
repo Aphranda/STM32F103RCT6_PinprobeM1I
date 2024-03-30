@@ -36,10 +36,10 @@ extern "C" {
 
 #define SCPI_INPUT_BUFFER_LENGTH 256
 #define SCPI_ERROR_QUEUE_SIZE 17
-#define SCPI_IDN1 "SYNWIT"
-#define SCPI_IDN2 "STM32H407"
-#define SCPI_IDN3 "0123456789"
-#define SCPI_IDN4 "V0.0.2"
+#define SCPI_IDN1 "GTS"
+#define SCPI_IDN2 "PINPROBEM1I"
+#define SCPI_IDN3 "20240331"
+#define SCPI_IDN4 "V0.0.1"
 
 extern const scpi_command_t scpi_commands[];
 extern scpi_interface_t scpi_interface;
