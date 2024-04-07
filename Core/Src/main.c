@@ -135,12 +135,19 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_Delay(1);
+    // HAL_Delay(1);
     // uint32_t IOStatus;
     // uint32_t IOstatusCopy;
-    // HAL_Delay(1000);
     // IOStatus =  BsmIOStatus(10);
     // IOstatusCopy = IOStatus;
+    GPIO_PinState C1;
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+    C1 =  HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(1000);
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+    
+    C1 =  HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(1000);
     HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */
@@ -237,6 +244,7 @@ uint32_t BsmIOStatus(uint8_t checkNum)
   }
   return 0xffff;
 }
+
 /* USER CODE END 4 */
 
 /**

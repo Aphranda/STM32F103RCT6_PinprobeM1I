@@ -73,9 +73,11 @@ uint32_t BsmIOStatus(uint8_t checkNum);
 #define RF_C3_GPIO_Port GPIOC
 #define RF_C4_Pin GPIO_PIN_9
 #define RF_C4_GPIO_Port GPIOC
+#define LED_Pin GPIO_PIN_8
+#define LED_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
-
+uint32_t BsmIOStatus(uint8_t checkNum);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

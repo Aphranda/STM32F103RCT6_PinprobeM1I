@@ -40,316 +40,114 @@
 #include <string.h>
 #include "scpi/scpi.h"
 #include "scpi-def.h"
+#include "scpi_switch.h"
 
-static scpi_result_t DMM_ConfigureVoltageDc(scpi_t *context)
+static scpi_result_t SCPI_ConfigureSwitch(scpi_t *context)
 {
-    double param1, param2;
-
-    /* read first parameter if present */
-    if (!SCPI_ParamDouble(context, &param1, TRUE))
+    int32_t number[2] = 0;
+    uint16_t switch_id = 1;
+    SCPI_CommandNumbers(context, number, 1, 1);
+    if(number[0] != 1)
+    {
+        switch_id = number[0];
+    }
+    uint32_t switch_value = 0;
+    if(!SCPI_ParamUInt32(context, &switch_value, true))
     {
         return SCPI_RES_ERR;
     }
-
-    /* read second paraeter if present */
-    if (!SCPI_ParamDouble(context, &param2, FALSE))
-    {
-        /* do something, if parameter not present */
-    }
-
-    SCPI_ResultDouble(context,param1);
-    SCPI_ResultDouble(context,param2);
-    SCPI_ResultDouble(context,0);
-
-    return SCPI_RES_OK;
-}
-
-static scpi_result_t DMM_MeasureVoltageDcQ(scpi_t *context)
-{
-    scpi_number_t param1, param2;
-    char bf[15];
-    /* read first parameter if present */
-    if (!SCPI_ParamNumber(context, scpi_special_numbers_def, &param1, FALSE))
-    {
-        /* do something, if parameter not present */
-    }
-
-    /* read second paraeter if present */
-    if (!SCPI_ParamNumber(context, scpi_special_numbers_def, &param2, FALSE))
-    {
-        /* do something, if parameter not present */
-    }
-
-    SCPI_NumberToStr(context, scpi_special_numbers_def, &param1, bf, 15);
-    SCPI_ResultText(context, bf);
-
-    SCPI_NumberToStr(context, scpi_special_numbers_def, &param2, bf, 15);
-    SCPI_ResultText(context, bf);
-
-    SCPI_ResultDouble(context, 0);
-
-    return SCPI_RES_OK;
-}
-
-static scpi_result_t TEST_Bool(scpi_t *context)
-{
-    scpi_bool_t param1;
-
-    /* read first parameter if present */
-    if (!SCPI_ParamBool(context, &param1, TRUE))
+    if(Link_Write(switch_id, switch_value))
     {
         return SCPI_RES_ERR;
     }
-
-    SCPI_ResultBool(context, param1);
-
     return SCPI_RES_OK;
 }
 
-scpi_choice_def_t trigger_source[] = {
-    {"BUS", 5},
-    {"IMMediate", 6},
-    {"EXTernal", 7},
+static scpi_result_t SCPI_ReadSwitchState(scpi_t *context)
+{
+    int32_t number[2] = {0};
+    uint16_t switch_id = 1;
+
+    SCPI_CommandNumbers(context, number,1,1);
+    if(number[0] !=1)
+    {
+        switch_id = number[0];
+    }
+    uint32_t mask = 0;
+    Link_Read(switch_id, &mask);
+    SCPI_ResultInt32(context, mask);
+    return SCPI_RES_OK;
+}
+
+scpi_choice_def_t cylinder_source[] = {
+    {"CLOSE", 0},
+    {"OPEN", 1},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
 
-static scpi_result_t TEST_ChoiceQ(scpi_t *context)
+static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
 {
-
-    int32_t param;
-    const char *name;
-
-    if (!SCPI_ParamChoice(context, trigger_source, &param, TRUE))
+    int32_t number[2] = 0;
+    uint16_t cylinder_id = 1;
+    SCPI_CommandNumbers(context, number, 1, 1);
+    if(number[0] != 1)
     {
+        cylinder_id = number[0];
+    }
+    int32_t param;
+    if (!SCPI_ParamChoice(context, cylinder_source, &param, TRUE)) {
         return SCPI_RES_ERR;
     }
+    return SCPI_RES_OK;
+}
 
-    SCPI_ChoiceToName(trigger_source, param, &name);
+static scpi_result_t SCPI_ReadCylinderState(scpi_t *context)
+{
     
-    SCPI_ResultInt32(context, param);
-
-    return SCPI_RES_OK;
 }
 
-static scpi_result_t TEST_Numbers(scpi_t *context)
-{
-    int32_t numbers[2];
-
-    SCPI_CommandNumbers(context, numbers, 2, 1);
-
-    SCPI_ResultInt32(context,numbers[0]);
-    SCPI_ResultInt32(context,numbers[1]);
-
-    return SCPI_RES_OK;
-}
-
-static scpi_result_t TEST_Text(scpi_t *context)
-{
-    char buffer[100];
-    size_t copy_len;
-
-    if (!SCPI_ParamCopyText(context, buffer, sizeof(buffer), &copy_len, FALSE))
-    {
-        buffer[0] = '\0';
-    }
-
-    SCPI_ResultText(context, buffer);
-
-    return SCPI_RES_OK;
-}
-
-static scpi_result_t TEST_ArbQ(scpi_t *context)
-{
-    const char *data;
-    size_t len;
-
-    if (SCPI_ParamArbitraryBlock(context, &data, &len, FALSE))
-    {
-        SCPI_ResultArbitraryBlock(context, data, len);
-    }
-
-    return SCPI_RES_OK;
-}
-
-struct _scpi_channel_value_t
-{
-    int32_t row;
-    int32_t col;
+scpi_choice_def_t lock_source[] = {
+    {"OFF", 0},
+    {"ON", 1},
+    SCPI_CHOICE_LIST_END /* termination of option list */
 };
-typedef struct _scpi_channel_value_t scpi_channel_value_t;
 
-/**
- * @brief
- * parses lists
- * channel numbers > 0.
- * no checks yet.
- * valid: (@1), (@3!1:1!3), ...
- * (@1!1:3!2) would be 1!1, 1!2, 2!1, 2!2, 3!1, 3!2.
- * (@3!1:1!3) would be 3!1, 3!2, 3!3, 2!1, 2!2, 2!3, ... 1!3.
- *
- * @param channel_list channel list, compare to SCPI99 Vol 1 Ch. 8.3.2
- */
-static scpi_result_t TEST_Chanlst(scpi_t *context)
+static scpi_result_t SCPI_ConfigureLOCK(scpi_t *context)
 {
-    scpi_parameter_t channel_list_param;
-#define MAXROW 2                                 /* maximum number of rows */
-#define MAXCOL 6                                 /* maximum number of columns */
-#define MAXDIM 2                                 /* maximum number of dimensions */
-    scpi_channel_value_t array[MAXROW * MAXCOL]; /* array which holds values in order (2D) */
-    size_t chanlst_idx;                          /* index for channel list */
-    size_t arr_idx = 0;                          /* index for array */
-    size_t n, m = 1;                             /* counters for row (n) and columns (m) */
-
-    /* get channel list */
-    if (SCPI_Parameter(context, &channel_list_param, TRUE))
-    {
-        scpi_bool_t is_range;
-        int32_t values_from[MAXDIM];
-        int32_t values_to[MAXDIM];
-        size_t dimensions;
-
-        bool for_stop_row = FALSE; /* true if iteration for rows has to stop */
-        bool for_stop_col = FALSE; /* true if iteration for columns has to stop */
-        int32_t dir_row = 1;       /* direction of counter for rows, +/-1 */
-        int32_t dir_col = 1;       /* direction of counter for columns, +/-1 */
-
-        /* the next statement is valid usage and it gets only real number of dimensions for the first item (index 0) */
-        if (!SCPI_ExprChannelListEntry(context, &channel_list_param, 0, &is_range, NULL, NULL, 0, &dimensions))
-        {
-            chanlst_idx = 0; /* call first index */
-            arr_idx = 0;     /* set arr_idx to 0 */
-            do
-            { /* if valid, iterate over channel_list_param index while res == valid (do-while cause we have to do it once) */
-                SCPI_ExprChannelListEntry(context, &channel_list_param, chanlst_idx, &is_range, values_from, values_to, 4, &dimensions);
-                if (is_range == FALSE)
-                { /* still can have multiple dimensions */
-                    if (dimensions == 1)
-                    {
-                        /* here we have our values
-                         * row == values_from[0]
-                         * col == 0 (fixed number)
-                         * call a function or something */
-                        array[arr_idx].row = values_from[0];
-                        array[arr_idx].col = 0;
-                    }
-                    else if (dimensions == 2)
-                    {
-                        /* here we have our values
-                         * row == values_fom[0]
-                         * col == values_from[1]
-                         * call a function or something */
-                        array[arr_idx].row = values_from[0];
-                        array[arr_idx].col = values_from[1];
-                    }
-                    else
-                    {
-                        return SCPI_RES_ERR;
-                    }
-                    arr_idx++; /* inkrement array where we want to save our values to, not neccessary otherwise */
-                    if (arr_idx >= MAXROW * MAXCOL)
-                    {
-                        return SCPI_RES_ERR;
-                    }
-                }
-                else if (is_range == TRUE)
-                {
-                    if (values_from[0] > values_to[0])
-                    {
-                        dir_row = -1; /* we have to decrement from values_from */
-                    }
-                    else
-                    {                 /* if (values_from[0] < values_to[0]) */
-                        dir_row = +1; /* default, we increment from values_from */
-                    }
-
-                    /* iterating over rows, do it once -> set for_stop_row = false
-                     * needed if there is channel list index isn't at end yet */
-                    for_stop_row = FALSE;
-                    for (n = values_from[0]; for_stop_row == FALSE; n += dir_row)
-                    {
-                        /* usual case for ranges, 2 dimensions */
-                        if (dimensions == 2)
-                        {
-                            if (values_from[1] > values_to[1])
-                            {
-                                dir_col = -1;
-                            }
-                            else if (values_from[1] < values_to[1])
-                            {
-                                dir_col = +1;
-                            }
-                            /* iterating over columns, do it at least once -> set for_stop_col = false
-                             * needed if there is channel list index isn't at end yet */
-                            for_stop_col = FALSE;
-                            for (m = values_from[1]; for_stop_col == FALSE; m += dir_col)
-                            {
-                                /* here we have our values
-                                 * row == n
-                                 * col == m
-                                 * call a function or something */
-                                array[arr_idx].row = n;
-                                array[arr_idx].col = m;
-                                arr_idx++;
-                                if (arr_idx >= MAXROW * MAXCOL)
-                                {
-                                    return SCPI_RES_ERR;
-                                }
-                                if (m == (size_t)values_to[1])
-                                {
-                                    /* endpoint reached, stop column for-loop */
-                                    for_stop_col = TRUE;
-                                }
-                            }
-                            /* special case for range, example: (@2!1) */
-                        }
-                        else if (dimensions == 1)
-                        {
-                            /* here we have values
-                             * row == n
-                             * col == 0 (fixed number)
-                             * call function or sth. */
-                            array[arr_idx].row = n;
-                            array[arr_idx].col = 0;
-                            arr_idx++;
-                            if (arr_idx >= MAXROW * MAXCOL)
-                            {
-                                return SCPI_RES_ERR;
-                            }
-                        }
-                        if (n == (size_t)values_to[0])
-                        {
-                            /* endpoint reached, stop row for-loop */
-                            for_stop_row = TRUE;
-                        }
-                    }
-                }
-                else
-                {
-                    return SCPI_RES_ERR;
-                }
-                /* increase index */
-                chanlst_idx++;
-            } while (SCPI_EXPR_OK == SCPI_ExprChannelListEntry(context, &channel_list_param, chanlst_idx, &is_range, values_from, values_to, 4, &dimensions));
-            /* while checks, whether incremented index is valid */
-        }
-        /* do something at the end if needed */
-        /* array[arr_idx].row = 0; */
-        /* array[arr_idx].col = 0; */
-    }
-
-    {
-        size_t i;
-        SCPI_ResultText(context,"TEST_Chanlst: ");
-        for (i = 0; i < arr_idx; i++)
-        {
-            SCPI_ResultInt32(context,array[i].row);
-            SCPI_ResultInt32(context,array[i].col);
-            SCPI_ResultText(context,";");
-        }
-        SCPI_ResultText(context,"\r\n");
+    int32_t param;
+    if (!SCPI_ParamChoice(context, lock_source, &param, TRUE)) {
+        return SCPI_RES_ERR;
     }
     return SCPI_RES_OK;
 }
+
+static scpi_result_t SCPI_ReadLOCKState(scpi_t *context)
+{
+    
+}
+
+scpi_choice_def_t led_source[] = {
+    {"CLOSE", 0},
+    {"GREEN", 1},
+    {"RED", 2},
+    {"YELLOW", 3},
+    SCPI_CHOICE_LIST_END /* termination of option list */
+};
+
+static scpi_result_t SCPI_ConfigureLED(scpi_t *context)
+{
+    int32_t param;
+    if (!SCPI_ParamChoice(context, led_source, &param, TRUE)) {
+        return SCPI_RES_ERR;
+    }
+    return SCPI_RES_OK;
+}
+
+static scpi_result_t SCPI_ReadLEDState(scpi_t *context)
+{
+    
+}
+
 
 const scpi_command_t scpi_commands[] = {
     /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
@@ -358,54 +156,25 @@ const scpi_command_t scpi_commands[] = {
         .callback = SCPI_CoreCls,
     },
     {
-        .pattern = "*ESE",
-        .callback = SCPI_CoreEse,
-    },
-    {
-        .pattern = "*ESE?",
-        .callback = SCPI_CoreEseQ,
-    },
-    {
-        .pattern = "*ESR?",
-        .callback = SCPI_CoreEsrQ,
-    },
-    {
         .pattern = "*IDN?",
         .callback = SCPI_CoreIdnQ,
-    },
-    {
-        .pattern = "*OPC",
-        .callback = SCPI_CoreOpc,
-    },
-    {
-        .pattern = "*OPC?",
-        .callback = SCPI_CoreOpcQ,
     },
     {
         .pattern = "*RST",
         .callback = SCPI_CoreRst,
     },
     {
-        .pattern = "*SRE",
-        .callback = SCPI_CoreSre,
-    },
-    {
-        .pattern = "*SRE?",
-        .callback = SCPI_CoreSreQ,
-    },
-    {
         .pattern = "*STB?",
         .callback = SCPI_CoreStbQ,
-    },
-    {
-        .pattern = "*TST?",
-        .callback = SCPI_CoreTstQ,
     },
     {
         .pattern = "*WAI",
         .callback = SCPI_CoreWai,
     },
-
+    {
+        .pattern = "*OPC?",
+        .callback = SCPI_CoreOpcQ,
+    },
     /* Required SCPI commands (SCPI std V1999.0 4.2.1) */
     {
         .pattern = "SYSTem:ERRor[:NEXT]?",
@@ -416,73 +185,37 @@ const scpi_command_t scpi_commands[] = {
         .callback = SCPI_SystemErrorCountQ,
     },
     {
-        .pattern = "SYSTem:VERSion?",
-        .callback = SCPI_SystemVersionQ,
-    },
-    /* {.pattern = "STATus:OPERation?", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:EVENt?", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:CONDition?", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:ENABle", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:ENABle?", .callback = scpi_stub_callback,}, */
-
-    {
-        .pattern = "STATus:QUEStionable[:EVENt]?",
-        .callback = SCPI_StatusQuestionableEventQ,
-    },
-    /* {.pattern = "STATus:QUEStionable:CONDition?", .callback = scpi_stub_callback,}, */
-    {
-        .pattern = "STATus:QUEStionable:ENABle",
-        .callback = SCPI_StatusQuestionableEnable,
+        .pattern = "CONFigure:SWITch#",
+        .callback = SCPI_ConfigureSwitch,
     },
     {
-        .pattern = "STATus:QUEStionable:ENABle?",
-        .callback = SCPI_StatusQuestionableEnableQ,
+        .pattern = "READ:SWITch#:STATe?",
+        .callback = SCPI_ReadSwitchState,
     },
     {
-        .pattern = "STATus:PRESet",
-        .callback = SCPI_StatusPreset,
-    },
-
-    /* DMM */
-    {
-        .pattern = "CONFigure:VOLTage:DC",
-        .callback = DMM_ConfigureVoltageDc,
+        .pattern = "CONFigure:CYLInder#",
+        .callback = SCPI_ConfigureCylinder,
     },
     {
-        .pattern = "MEASure:VOLTage:DC?",
-        .callback = DMM_MeasureVoltageDcQ,
+        .pattern = "READ:CYLInder#:STATe?",
+        .callback = SCPI_ReadCylinderState,
     },
     {
-        .pattern = "MEASure:VOLTage:DC:RATio?",
-        .callback = SCPI_StubQ,
-    },
-
-    /* TEST */
-    {
-        .pattern = "TEST:BOOL",
-        .callback = TEST_Bool,
+        .pattern = "CONFigure:LOCK",
+        .callback = SCPI_ConfigureLOCK,
     },
     {
-        .pattern = "TEST:CHOice?",
-        .callback = TEST_ChoiceQ,
+        .pattern = "READ:LOCK:STATe?",
+        .callback = SCPI_ReadLOCKState,
     },
     {
-        .pattern = "TEST#:NUMbers#",
-        .callback = TEST_Numbers,
+        .pattern = "CONFigure:LED",
+        .callback = SCPI_ConfigureLED,
     },
     {
-        .pattern = "TEST:TEXT",
-        .callback = TEST_Text,
+        .pattern = "READ:LED:STATe?",
+        .callback = SCPI_ReadLEDState,
     },
-    {
-        .pattern = "TEST:ARBitrary?",
-        .callback = TEST_ArbQ,
-    },
-    {
-        .pattern = "TEST:CHANnellist",
-        .callback = TEST_Chanlst,
-    },
-
     SCPI_CMD_LIST_END};
 
 scpi_interface_t scpi_interface = {
