@@ -41,6 +41,7 @@
 #include "scpi/scpi.h"
 #include "scpi-def.h"
 #include "scpi_switch.h"
+#include "BsmRelay.h"
 
 static scpi_result_t SCPI_ConfigureSwitch(scpi_t *context)
 {
@@ -95,7 +96,13 @@ static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
         cylinder_id = number[0];
     }
     int32_t param;
+    const char *name;
     if (!SCPI_ParamChoice(context, cylinder_source, &param, TRUE)) {
+        return SCPI_RES_ERR;
+    }
+    SCPI_ChoiceToName(cylinder_source, param, &name);
+    if(Cylinder_Write(cylinder_id, cylinder_source[param]))
+    {
         return SCPI_RES_ERR;
     }
     return SCPI_RES_OK;
@@ -103,7 +110,11 @@ static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
 
 static scpi_result_t SCPI_ReadCylinderState(scpi_t *context)
 {
-    
+    int32_t param=1;
+    const char *name;
+    SCPI_ChoiceToName(cylinder_source, param, &name);
+
+    SCPI_ResultCharacters(context, name, strlen(name));
 }
 
 scpi_choice_def_t lock_source[] = {

@@ -140,17 +140,16 @@ int main(void)
     // uint32_t IOstatusCopy;
     // IOStatus =  BsmIOStatus(10);
     // IOstatusCopy = IOStatus;
-    GPIO_PinState C1;
-    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-    C1 =  HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(1000);
-    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-    
-    C1 =  HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(1000);
+    if(strlen((const char *)usart1_buff_IsReady)>3)
+    {
+      // begin Scpi serve
+      SCPI_Input(&scpi_context, (const char *)usart1_buff_IsReady, strlen((const char *)usart1_buff_IsReady)-1);
+      // clear usart1_buff_IsReady
+      memset((uint8_t *)usart1_buff_IsReady, 0, MAX_RX_LEN);
+    }
     HAL_IWDG_Refresh(&hiwdg);
-  }
   /* USER CODE END 3 */
+  }
 }
 
 /**
