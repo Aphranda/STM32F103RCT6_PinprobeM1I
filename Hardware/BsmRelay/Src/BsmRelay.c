@@ -87,6 +87,7 @@ uint8_t IO_Read(uint8_t checkNum, uint8_t direction, uint8_t* trueData){
         {
             trueData[0] = IOData[3];
             trueData[1] = IOData[4];
+            return 0;
         }
     }
     return 0; 

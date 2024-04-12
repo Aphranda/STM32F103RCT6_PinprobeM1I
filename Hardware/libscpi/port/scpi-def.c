@@ -83,6 +83,10 @@ static scpi_result_t SCPI_ReadSwitchState(scpi_t *context)
 scpi_choice_def_t cylinder_source[] = {
     {"CLOSE", 0},
     {"OPEN", 1},
+    {"CLOSING",2},
+    {"OPENING",3},
+    {"CLOSED",4},
+    {"OPENED",5},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
 
@@ -112,7 +116,7 @@ static scpi_result_t SCPI_ReadCylinderState(scpi_t *context)
 {
     int32_t param=1;
     const char *name;
-    SCPI_ChoiceToName(cylinder_source, param, &name);
+    uint8_t* outIO = OutputIO_Read(5);
 
     SCPI_ResultCharacters(context, name, strlen(name));
 }
