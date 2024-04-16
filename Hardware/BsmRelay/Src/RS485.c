@@ -6,7 +6,7 @@
 /// @return IO status
 uint8_t WriteIO(uint8_t index, uint8_t status){
     HAL_Delay(10);
-    uint8_t *data = IOWriteOrder(index,status);
+    uint8_t *data = IOWriteOrder(index-1,status);
     HAL_UART_Transmit(&huart3,data,8,0XFFFF);
     HAL_Delay(10);
     return status;

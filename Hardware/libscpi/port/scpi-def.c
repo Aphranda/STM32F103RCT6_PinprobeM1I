@@ -87,6 +87,7 @@ scpi_choice_def_t cylinder_source[] = {
     {"OPENING",3},
     {"CLOSED",4},
     {"OPENED",5},
+    {"CYL ERR",6},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
 
@@ -114,23 +115,29 @@ static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
 
 static scpi_result_t SCPI_ReadCylinderState(scpi_t *context)
 {
-    int32_t param=1;
-    const char *name;
-    uint8_t* outIO = OutputIO_Read(5);
-
+    const char *name = "CYL ERR";
+    scpi_choice_def_t status =Cylinder_Status(1);
+    name = status.name;
     SCPI_ResultCharacters(context, name, strlen(name));
 }
 
 scpi_choice_def_t lock_source[] = {
     {"OFF", 0},
     {"ON", 1},
+    {"LOCK ERR",2},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
 
 static scpi_result_t SCPI_ConfigureLOCK(scpi_t *context)
 {
     int32_t param;
+    const char *name;
     if (!SCPI_ParamChoice(context, lock_source, &param, TRUE)) {
+        return SCPI_RES_ERR;
+    }
+    SCPI_ChoiceToName(lock_source, param, &name);
+    if(Lock_Write(lock_source[param]))
+    {
         return SCPI_RES_ERR;
     }
     return SCPI_RES_OK;
@@ -138,21 +145,31 @@ static scpi_result_t SCPI_ConfigureLOCK(scpi_t *context)
 
 static scpi_result_t SCPI_ReadLOCKState(scpi_t *context)
 {
-    
+    const char *name = "LOCK ERR";
+    scpi_choice_def_t status =Lock_Status();
+    name = status.name;
+    SCPI_ResultCharacters(context, name, strlen(name));
 }
 
 scpi_choice_def_t led_source[] = {
-    {"CLOSE", 0},
+    {"OFF", 0},
     {"GREEN", 1},
     {"RED", 2},
     {"YELLOW", 3},
+    {"LED ERR", 4},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
 
 static scpi_result_t SCPI_ConfigureLED(scpi_t *context)
 {
     int32_t param;
+    const char *name;
     if (!SCPI_ParamChoice(context, led_source, &param, TRUE)) {
+        return SCPI_RES_ERR;
+    }
+    SCPI_ChoiceToName(led_source, param, &name);
+    if(LED_Write(led_source[param]))
+    {
         return SCPI_RES_ERR;
     }
     return SCPI_RES_OK;
@@ -160,7 +177,10 @@ static scpi_result_t SCPI_ConfigureLED(scpi_t *context)
 
 static scpi_result_t SCPI_ReadLEDState(scpi_t *context)
 {
-    
+    const char *name = "LED ERR";
+    scpi_choice_def_t status =LED_Status();
+    name = status.name;
+    SCPI_ResultCharacters(context, name, strlen(name));
 }
 
 

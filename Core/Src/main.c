@@ -133,13 +133,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
-    // HAL_Delay(1);
-    // uint32_t IOStatus;
-    // uint32_t IOstatusCopy;
-    // IOStatus =  BsmIOStatus(10);
-    // IOstatusCopy = IOStatus;
     if(strlen((const char *)usart1_buff_IsReady)>3)
     {
       // begin Scpi serve
