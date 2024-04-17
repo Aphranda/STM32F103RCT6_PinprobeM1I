@@ -6,8 +6,33 @@
     ],
     "settings": {
         "files.associations": {
-            "scpi-def.h": "c"
-        }
+            "scpi-def.h": "c",
+            "main.h": "c"
+        },
+        "cSpell.words": [
+            "AHBCLK",
+            "CLOCKTYPE",
+            "cmsis",
+            "GPIO",
+            "HCLK",
+            "hdma",
+            "hiwdg",
+            "htim",
+            "huart",
+            "IDLEFLAG",
+            "IWDG",
+            "OSCILLATORTYPE",
+            "PCLK",
+            "PLLCLK",
+            "PLLMUL",
+            "PLLSOURCE",
+            "PREDIV",
+            "Scpi",
+            "SYSCLK",
+            "SYSCLKSOURCE",
+            "Systick",
+            "usart"
+        ]
     },
     "extensions": {}
 }
