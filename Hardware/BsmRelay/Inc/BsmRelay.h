@@ -11,6 +11,13 @@
 #include "scpi-def.h"
 #include "RS485.h"
 
+#define CHECK_NUM 5
+
+extern uint8_t* usart1_buff_IsReady;
+extern uint8_t* usart1_buff_Occupied;
+extern uint8_t* usart3_buff_IsReady;
+extern uint8_t* usart3_buff_Occupied;
+
 typedef enum {
     door_sensor_up      = 0x0001,
     door_sensor_down    = 0x0002,

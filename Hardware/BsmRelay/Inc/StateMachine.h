@@ -15,43 +15,20 @@ typedef enum {
 
     Ready = 5,      // Machine Hardware Ready
     Error = 6,      // Machine Hardware Error
-    Stop = 7,       // Machine Hardware Stop
+    Idle = 7,       // Machine Hardware Idle
     Emerge = 8,     // Machine Hardware Merge
-
 } MachineState;
 
-typedef enum {
-    RF1 = 0, //
-    RF2 = 1, //
-    RF3 = 2, //
-    RF4 = 3, //
-    RF5 = 4, //
-    RF6 = 5, //
-    RF7 = 6, //
-    RF8 = 7, //
-    RF9 = 8, //
-    RF10 = 9, //
-    RF11 = 10, //
-    RF12 = 11, //
-    RF13 = 12, //
-    RF14 = 13, //
-    RF15 = 14, //
-    RF16 = 15 //
-} RFState;
+
 
 typedef enum {
     twinkle = 0,        // Machine LED twinkle
-    Greed = 1,          // Machine LED Green
+    Green = 1,          // Machine LED Green
     Red = 2,            // Machine LED Red
     Yellow = 3,         // Machine LED Yellow
     Led_OFF = 4,        // Machine LED OFF
 } LEDState;
 
-
-typedef enum {
-    buttonUnlocked = 0,       // Machine is unlocked
-    buttonLock = 1,           // Machine is unlocked
-} LockButtonState;
 
 typedef enum {
     PressDown = 0,      // Machine is normal press
@@ -76,12 +53,16 @@ typedef enum {
 typedef struct Action_Map {
     MachineState Machine;
     LEDState led;
-    RFState rfSwitch;
-    LockButtonState lockButton;
     EStopButtonState eStopButton;
     StartButtonState startButton;
     SafeSensorState  safeSensor;
     CylinderState cylinder;
 } MachineAction;
 
+uint8_t StateMachine_Input();
+uint8_t Lock_Action();
+uint8_t Idle_Action();
+uint8_t Ready_Action();
+uint8_t Running_Action();
+uint8_t Emerge_Action();
 #endif /* __STATEMACHINE_H */

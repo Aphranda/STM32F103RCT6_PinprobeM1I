@@ -25,6 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "StateMachine.h"
+#include "BsmRelay.h"
 #include "RS485.h"
 #include "scpi/scpi.h"
 #include "scpi-def.h"
@@ -104,7 +106,6 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
   __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
 
@@ -133,7 +134,11 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
+    // auto server
+    StateMachine_Input();
+
     if(strlen((const char *)usart1_buff_IsReady)>3)
     {
       // begin Scpi serve
@@ -142,8 +147,8 @@ int main(void)
       memset((uint8_t *)usart1_buff_IsReady, 0, MAX_RX_LEN);
     }
     HAL_IWDG_Refresh(&hiwdg);
-  /* USER CODE END 3 */
   }
+  /* USER CODE END 3 */
 }
 
 /**
@@ -187,56 +192,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint32_t BsmIOStatus(uint8_t checkNum)
-{
-  uint8_t IO_status_count = 0;      // IO Status check num
-  uint8_t IN_OUT_Flag = 0;          // First Reading Input IO Status, then Reading Output IO Status.
-  while (IO_status_count<checkNum)
-  {
-    uint8_t* data;
-    uint32_t IOStatus;              // return IOStatus
-    uint8_t crcData[2];             // compare received crcData with calculate crc data 
-    uint8_t InputIOData[5];         // Input IO Status
-    uint8_t OutputIOData[5];        // Output IO Status
-
-    uint8_t InputTrueData[5];
-    uint8_t OutputTrueData[5];
-
-    if(IN_OUT_Flag == 0)
-    {
-      ReadIO(2, data);
-    }
-    
-    memcpy(InputIOData, usart3_buff_IsReady, 5);
-
-    crcData[0] = usart3_buff_IsReady[5];
-    crcData[1] = usart3_buff_IsReady[6];
-
-    if(modbus_crc_compare(5, InputIOData, crcData))
-    {
-      memcpy(InputTrueData, InputIOData, 5);
-      IN_OUT_Flag = 1;
-    }
-    
-    if(IN_OUT_Flag == 1)
-    {
-      ReadIO(1, data);
-    }
-    
-    memcpy(OutputIOData, usart3_buff_IsReady, 5);
-    crcData[0] = usart3_buff_IsReady[5];
-    crcData[1] = usart3_buff_IsReady[6];
-    if(modbus_crc_compare(5, OutputIOData ,crcData))
-    {
-      memcpy(OutputTrueData, OutputIOData, 5);
-      IN_OUT_Flag = 0;
-      IOStatus = (InputTrueData[3]<<24)|(InputTrueData[4]<<16)|(OutputTrueData[3]<<8)|(OutputTrueData[4]);
-      return IOStatus;
-    }
-    IO_status_count++;
-  }
-  return 0xffff;
-}
 
 /* USER CODE END 4 */
 

@@ -183,6 +183,15 @@ static scpi_result_t SCPI_ReadLEDState(scpi_t *context)
     SCPI_ResultCharacters(context, name, strlen(name));
 }
 
+scpi_choice_def_t sys_source[] = {
+    {"Lock", 0},
+    {"Idle", 1},
+    {"Ready", 2},
+    {"Running", 3},
+    {"Emergency", 4},
+    {"SYS ERR",5},
+    SCPI_CHOICE_LIST_END /* termination of option list */
+};
 
 const scpi_command_t scpi_commands[] = {
     /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */

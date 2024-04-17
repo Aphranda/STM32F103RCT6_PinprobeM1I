@@ -1,8 +1,7 @@
 #include "BsmRelay.h"
 #include <math.h>
 
-extern uint8_t* usart3_buff_IsReady;
-extern uint8_t* usart3_buff_Occupied;
+
 extern scpi_choice_def_t cylinder_source[];
 extern scpi_choice_def_t lock_source[];
 extern scpi_choice_def_t led_source[];
@@ -27,10 +26,10 @@ uint8_t Cylinder_Write(uint32_t cylinder_id, scpi_choice_def_t cylinder_value)
 
 scpi_choice_def_t Cylinder_Status(uint32_t cylinder_id)
 {
-    uint8_t* O_status = OutputIO_Read(5);
+    uint8_t* O_status = OutputIO_Read(CHECK_NUM);
     uint8_t out_01_08 = O_status[0];
     uint8_t out_09_16 = O_status[1];
-    uint8_t* I_status = InputIO_Read(5);
+    uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
     if(out_01_08&door_pne_out) // 气缸伸出
@@ -71,10 +70,10 @@ uint8_t Lock_Write(scpi_choice_def_t lock_value)
 }
 
 scpi_choice_def_t Lock_Status(){
-    uint8_t* O_status = OutputIO_Read(5);
+    uint8_t* O_status = OutputIO_Read(CHECK_NUM);
     uint8_t out_01_08 = O_status[0];
     uint8_t out_09_16 = O_status[1];
-    uint8_t* I_status = InputIO_Read(5);
+    uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
 
@@ -120,10 +119,10 @@ uint8_t LED_Write(scpi_choice_def_t led_value)
 }
 
 scpi_choice_def_t LED_Status(){
-    uint8_t* O_status = OutputIO_Read(5);
+    uint8_t* O_status = OutputIO_Read(CHECK_NUM);
     uint8_t out_01_08 = O_status[0];
     uint8_t out_09_16 = O_status[1];
-    uint8_t* I_status = InputIO_Read(5);
+    uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
 
@@ -164,18 +163,19 @@ uint8_t IO_Read(uint8_t checkNum, uint8_t direction, uint8_t* trueData){
             trueData[1] = IOData[4];
             return 0;
         }
+        State_count++;
     }
     return 0; 
 }
 
 uint8_t* InputIO_Read(uint8_t checkNum){
-    uint8_t* data;
+    uint8_t data[2];
     IO_Read(checkNum, 2, data);
     return data;
 }
 
 uint8_t* OutputIO_Read(uint8_t checkNum){
-    uint8_t* data;
+    uint8_t data[2];
     IO_Read(checkNum, 1, data);
     return data;
 }
