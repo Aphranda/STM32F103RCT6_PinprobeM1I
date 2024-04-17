@@ -58,16 +58,14 @@ void HardFault_Handler(void);
 void MemManage_Handler(void);
 void BusFault_Handler(void);
 void UsageFault_Handler(void);
-void SVC_Handler(void);
 void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
 void DMA1_Channel2_IRQHandler(void);
 void DMA1_Channel3_IRQHandler(void);
 void DMA1_Channel4_IRQHandler(void);
 void DMA1_Channel5_IRQHandler(void);
 void USART1_IRQHandler(void);
 void USART3_IRQHandler(void);
+void TIM5_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 void DMA_Usart1_Tx_Data(uint8_t *buffer, uint16_t size); // DMA Usart1 Tx Data
 void DMA_Usart3_Tx_Data(uint8_t *buffer, uint16_t size); // DMA Usart3 Tx Data
