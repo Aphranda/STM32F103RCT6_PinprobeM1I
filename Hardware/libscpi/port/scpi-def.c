@@ -189,7 +189,8 @@ scpi_choice_def_t sys_source[] = {
     {"Ready", 2},
     {"Running", 3},
     {"Emergency", 4},
-    {"SYS ERR",5},
+    {"Complete",5},
+    {"SYS ERR",6},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
 

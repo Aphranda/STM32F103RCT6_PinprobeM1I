@@ -32,7 +32,7 @@ scpi_choice_def_t Cylinder_Status(uint32_t cylinder_id)
     uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
-    if(out_01_08&door_pne_out) // 气缸伸出
+    if(out_01_08&door_open) // 气缸伸出
     {
         if(in_01_08&door_sensor_up) // 触发前限位传感
         {
@@ -40,7 +40,7 @@ scpi_choice_def_t Cylinder_Status(uint32_t cylinder_id)
         }
         return cylinder_source[3]; // 气缸回缩中
     }
-    if(out_01_08&door_pne_in) //气缸回缩
+    if(out_01_08&door_close) //气缸回缩
     {
         if(in_01_08&door_sensor_down) // 触发后限位传感
         {

@@ -73,6 +73,11 @@ osTimerId_t SCPITimerHandle;
 const osTimerAttr_t SCPITimer_attributes = {
   .name = "SCPITimer"
 };
+/* Definitions for COMMutex */
+osMutexId_t COMMutexHandle;
+const osMutexAttr_t COMMutex_attributes = {
+  .name = "COMMutex"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -95,6 +100,9 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of COMMutex */
+  COMMutexHandle = osMutexNew(&COMMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */

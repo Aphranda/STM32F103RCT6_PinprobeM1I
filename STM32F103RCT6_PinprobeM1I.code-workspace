@@ -32,7 +32,8 @@
             "SYSCLKSOURCE",
             "Systick",
             "usart"
-        ]
+        ],
+        "cortex-debug.variableUseNaturalFormat": false
     },
     "extensions": {}
 }

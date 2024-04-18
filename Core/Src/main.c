@@ -48,6 +48,8 @@ extern uint8_t* usart1_buff_Occupied;
 
 extern uint8_t* usart3_buff_IsReady;
 extern uint8_t* usart3_buff_Occupied;
+
+extern osMutexId_t COMMutexHandle;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -200,14 +202,20 @@ void SCPITask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+    
     if(strlen((const char *)usart1_buff_IsReady)>3)
     {
       // begin Scpi serve
+      osMutexWait(COMMutexHandle,osWaitForever);
       SCPI_Input(&scpi_context, (const char *)usart1_buff_IsReady, strlen((const char *)usart1_buff_IsReady)-1);
+      osMutexRelease(COMMutexHandle);
       // clear usart1_buff_IsReady
       memset((uint8_t *)usart1_buff_IsReady, 0, MAX_RX_LEN);
     }
+    
     HAL_IWDG_Refresh(&hiwdg);
+    osDelay(1);
+    
   }
   /* USER CODE END SCPITask */
 }
@@ -219,7 +227,6 @@ void ModBusTask(void *argument)
   for(;;)
   {
     StateMachine_Input();
-    osDelay(1);
   }
   /* USER CODE END ModBusTask */
 }

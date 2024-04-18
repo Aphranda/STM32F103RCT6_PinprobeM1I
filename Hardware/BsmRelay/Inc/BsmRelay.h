@@ -30,14 +30,14 @@ typedef enum {
     laser_sensor4       = 0x0100,
     door_button1        = 0x0200,
     door_button2        = 0x0400,
-    start_button        = 0x0800,
+    stop_button         = 0x0800,
     power_button        = 0x1000,
 }inputIO;
 
 typedef enum{
     nc_IO           = 0x0001,
-    door_pne_out    = 0x0002,
-    door_pne_in     = 0x0004,
+    door_open       = 0x0002,
+    door_close      = 0x0004,
     usb_pne_io      = 0x0008,
     led_green       = 0x0010,
     led_red         = 0x0020,

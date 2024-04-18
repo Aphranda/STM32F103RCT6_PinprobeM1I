@@ -6,17 +6,13 @@
 #include <stdint.h>
 #include <string.h>
 typedef enum {
-    Unlocked = 0,   // Machine is unlocked
-    Lock = 1,       // Machine is locked
-
-    StartTest = 2,  // Machine Hardware Start
-    EndTest = 3,    // Machine Hardware End
-    Testing = 4,    // Machine Software Testing
-
-    Ready = 5,      // Machine Hardware Ready
-    Error = 6,      // Machine Hardware Error
-    Idle = 7,       // Machine Hardware Idle
-    Emerge = 8,     // Machine Hardware Merge
+    Lock = 0,
+    Idle = 1,       // Machine Hardware Idle
+    Ready = 2,      // Machine Hardware Ready
+    Running = 3,      // Machine Hardware Error
+    Emergency = 4,     // Machine Hardware Merge
+    Complete = 5,
+    SYS_ERR = 6,
 } MachineState;
 
 
@@ -60,9 +56,12 @@ typedef struct Action_Map {
 } MachineAction;
 
 uint8_t StateMachine_Input();
-uint8_t Lock_Action();
-uint8_t Idle_Action();
-uint8_t Ready_Action();
-uint8_t Running_Action();
-uint8_t Emerge_Action();
+uint8_t Lock_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t Emerge_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t Release_detection(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t showStatus();
+
 #endif /* __STATEMACHINE_H */
