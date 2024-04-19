@@ -5,6 +5,8 @@
 extern scpi_choice_def_t cylinder_source[];
 extern scpi_choice_def_t lock_source[];
 extern scpi_choice_def_t led_source[];
+extern scpi_choice_def_t sys_source[];
+extern uint8_t system_status;
 
 
 uint8_t Cylinder_Write(uint32_t cylinder_id, scpi_choice_def_t cylinder_value)
@@ -140,6 +142,10 @@ scpi_choice_def_t LED_Status(){
         return led_source[0];
     }
     return led_source[4];
+}
+
+scpi_choice_def_t SYS_Status(){
+    return sys_source[system_status];
 }
 
 uint8_t IO_Read(uint8_t checkNum, uint8_t direction, uint8_t* trueData){

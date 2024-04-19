@@ -4,7 +4,7 @@
 
 #define Lock_Delay_num 3
 #define Door_Delay_num 10
-// #define Debug
+#define Debug
 
 extern scpi_choice_def_t cylinder_source[];
 extern scpi_choice_def_t lock_source[];
@@ -18,10 +18,11 @@ uint16_t door_open_num = 0;
 uint16_t door_close_num = 0;
 uint16_t Release_flag = 0;
 uint8_t system_status = SYS_ERR;
+uint8_t system_old_status;
 
 uint8_t StateMachine_Input()
 {
-    showStatus();
+
     uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
@@ -29,6 +30,7 @@ uint8_t StateMachine_Input()
     uint8_t out_01_08 = O_status[0];
     uint8_t out_09_16 = O_status[1];
 
+    system_old_status = system_status;
     
     Lock_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Idle_Action(in_01_08, in_09_16, out_01_08, out_09_16);
@@ -37,7 +39,12 @@ uint8_t StateMachine_Input()
     Emerge_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Release_detection(in_01_08, in_09_16, out_01_08, out_09_16);
     osDelay(100);
-    showStatus();
+    
+    if(system_status != system_old_status)
+    {
+        showStatus();
+        system_old_status = system_status;
+    }
     return 0;
 }
 

@@ -193,6 +193,13 @@ scpi_choice_def_t sys_source[] = {
     {"SYS ERR",6},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
+static scpi_result_t SCPI_ReadSystemState(scpi_t *context)
+{
+    const char *name = "SYS ERR";
+    scpi_choice_def_t status =SYS_Status();
+    name = status.name;
+    SCPI_ResultCharacters(context, name, strlen(name));
+}
 
 const scpi_command_t scpi_commands[] = {
     /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
@@ -260,6 +267,10 @@ const scpi_command_t scpi_commands[] = {
     {
         .pattern = "READ:LED:STATe?",
         .callback = SCPI_ReadLEDState,
+    },
+    {
+        .pattern = "READ:SYSTem:STATe?",
+        .callback = SCPI_ReadSystemState,
     },
     SCPI_CMD_LIST_END};
 
