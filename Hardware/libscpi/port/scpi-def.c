@@ -43,6 +43,8 @@
 #include "scpi_switch.h"
 #include "BsmRelay.h"
 
+
+
 static scpi_result_t SCPI_ConfigureSwitch(scpi_t *context)
 {
     int32_t number[2] = 0;
@@ -78,6 +80,51 @@ static scpi_result_t SCPI_ReadSwitchState(scpi_t *context)
     Link_Read(switch_id, &mask);
     SCPI_ResultInt32(context, mask);
     return SCPI_RES_OK;
+}
+
+scpi_choice_def_t link_source[] = {
+    {"ERR", 0},
+    {"Port1", 1},
+    {"Port2", 2},
+    {"Port3", 3},
+    {"Port4", 4},
+    {"Port5", 5},
+    {"Port6", 6},
+    {"Port7", 7},
+    {"Port8", 8},
+    {"Port9", 9},
+    {"Port10",10},
+    {"Port11",11},
+    {"Port12",12},
+    {"Port13",13},
+    {"Port14",14},
+    {"Port15",15},
+    {"Port16",16},
+    SCPI_CHOICE_LIST_END /* termination of option list */
+};
+
+static scpi_result_t SCPI_ConfigureLink(scpi_t *context)
+{
+    int32_t param;
+    const char *name;
+    if (!SCPI_ParamChoice(context, link_source, &param, TRUE)) {
+        return SCPI_RES_ERR;
+    }
+    SCPI_ChoiceToName(link_source, param, &name);
+    if(Link_Write(1, link_source[param].tag))
+    {
+        return SCPI_RES_ERR;
+    }
+    return SCPI_RES_OK;
+}
+
+static scpi_result_t SCPI_ReadLinkState(scpi_t *context)
+{
+    const char *name = "LINK ERR";
+    uint32_t mask = 0;
+    Link_Read(1, &mask);
+    name = link_source[mask].name;
+    SCPI_ResultCharacters(context, name, strlen(name));
 }
 
 scpi_choice_def_t cylinder_source[] = {
@@ -243,6 +290,14 @@ const scpi_command_t scpi_commands[] = {
     {
         .pattern = "READ:SWITch#:STATe?",
         .callback = SCPI_ReadSwitchState,
+    },
+    {
+        .pattern = "CONFigure:LINK",
+        .callback = SCPI_ConfigureLink,
+    },
+    {
+        .pattern = "READ:LINK:STATe?",
+        .callback = SCPI_ReadLinkState,
     },
     {
         .pattern = "CONFigure:CYLInder#",
