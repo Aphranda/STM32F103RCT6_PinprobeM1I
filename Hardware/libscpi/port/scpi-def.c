@@ -169,8 +169,8 @@ static scpi_result_t SCPI_ReadCylinderState(scpi_t *context)
 }
 
 scpi_choice_def_t lock_source[] = {
-    {"OFF", 0},
-    {"ON", 1},
+    {"UNLOCK", 0},
+    {"LOCKED", 1},
     {"LOCK ERR",2},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };
@@ -231,12 +231,12 @@ static scpi_result_t SCPI_ReadLEDState(scpi_t *context)
 }
 
 scpi_choice_def_t sys_source[] = {
-    {"Lock", 0},
-    {"Idle", 1},
-    {"Ready", 2},
-    {"Running", 3},
-    {"Emergency", 4},
-    {"Complete",5},
+    {"LOCK", 0},
+    {"IDLE", 1},
+    {"READY", 2},
+    {"RUNNING", 3},
+    {"EMERGENCY", 4},
+    {"COMPLETE",5},
     {"SYS ERR",6},
     SCPI_CHOICE_LIST_END /* termination of option list */
 };

@@ -53,7 +53,6 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-uint32_t BsmIOStatus(uint8_t checkNum);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

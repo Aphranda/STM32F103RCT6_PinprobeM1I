@@ -22,7 +22,7 @@ uint8_t system_old_status;
 
 uint8_t StateMachine_Input()
 {
-
+    
     uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
@@ -36,9 +36,9 @@ uint8_t StateMachine_Input()
     Idle_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Ready_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Running_Action(in_01_08, in_09_16, out_01_08, out_09_16);
+    Complete_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Emerge_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Release_detection(in_01_08, in_09_16, out_01_08, out_09_16);
-    osDelay(100);
     
     if(system_status != system_old_status)
     {
@@ -139,6 +139,10 @@ uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint
         {
             system_status = Idle;
         }
+        else if((out_01_08&door_close)&&(!(in_01_08&door_sensor_down)))
+        {
+            system_status = Running;
+        }
         uint8_t door_ready_status = 0;
         // ready action door
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))
@@ -172,16 +176,6 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
 {
     if(system_status == Running)
     {
-        if((in_01_08&door_sensor_up)&&(out_01_08&door_open))
-        {
-            system_status == Ready;
-        }
-
-        if((in_01_08&door_sensor_down)&&(out_01_08&door_close))
-        {
-            system_status == Complete;
-        }
-
         uint8_t door_idle_status = 0;
         // ready action door
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))
@@ -207,7 +201,44 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
                 system_status = Idle;
             }
         }
+        if(out_01_08&door_close) //气缸回缩
+        {
+            if(in_01_08&door_sensor_down) // 触发后限位传感
+            {
+                system_status = Complete; // 气缸到达后限位
+            }
+            else
+            {
+                system_status = Running; // 气缸回缩中
+            }
+        }
+
+        if(out_01_08&door_open) // 气缸伸出
+        {
+            LED_Write(led_source[0]);
+            if(in_01_08&door_sensor_up) // 触发前限位传感
+            {
+                system_status = Idle; // 气缸到达前限位
+            }
+            system_status = Running; // 气缸回缩中
+        }
     return 0;
+    }
+}
+
+uint8_t Complete_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
+{
+    if(system_status == Complete)
+    {
+        if(out_01_08&door_open) // 气缸伸出
+        {
+            LED_Write(led_source[0]);
+            if(in_01_08&door_sensor_up) // 触发前限位传感
+            {
+                system_status = Idle; // 气缸到达前限位
+            }
+            system_status = Running; // 气缸回缩中
+        }
     }
 }
 
@@ -268,7 +299,10 @@ uint8_t showStatus()
         U1_Printf("RUNNING\r\n");
         break;
     case 4:
-        U1_Printf("EMERGE\r\n");
+        U1_Printf("EMERGENCY\r\n");
+        break;
+    case 5:
+        U1_Printf("COMPLETE\r\n");
         break;
     default:
         break;
