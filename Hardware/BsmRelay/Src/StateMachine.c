@@ -32,6 +32,7 @@ uint8_t StateMachine_Input()
     uint8_t* O_status = OutputIO_Read(CHECK_NUM);
     uint8_t out_01_08 = O_status[0];
     uint8_t out_09_16 = O_status[1];
+    
     system_old_status = system_status;
 
     Init_Action(in_01_08, in_09_16, out_01_08, out_09_16);
