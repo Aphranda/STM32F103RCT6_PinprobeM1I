@@ -59,7 +59,7 @@ static scpi_result_t SCPI_ConfigureSwitch(scpi_t *context)
     {
         return SCPI_RES_ERR;
     }
-    if(Link_Write(switch_id, switch_value))
+    if(Switch_Write(switch_id, switch_value))
     {
         return SCPI_RES_ERR;
     }
@@ -77,7 +77,7 @@ static scpi_result_t SCPI_ReadSwitchState(scpi_t *context)
         switch_id = number[0];
     }
     uint32_t mask = 0;
-    Link_Read(switch_id, &mask);
+    Switch_Read(switch_id, &mask);
     SCPI_ResultInt32(context, mask);
     return SCPI_RES_OK;
 }

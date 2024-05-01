@@ -12,5 +12,6 @@
 
 uint8_t Link_Write(uint16_t link_id, uint32_t link_value);
 uint8_t Link_Read(uint16_t link_id, uint32_t* link_value);
-uint8_t Switch_Control(uint8_t switch_id, uint32_t switch_value);
+uint8_t Switch_Write(uint8_t switch_id, uint32_t switch_value);
+uint8_t Switch_Read(uint16_t switch_id, uint32_t* switch_value);
 #endif // !__SCPI_SWITCH_H
