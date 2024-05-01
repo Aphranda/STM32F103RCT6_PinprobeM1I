@@ -115,6 +115,19 @@ static scpi_result_t SCPI_ConfigureLink(scpi_t *context)
     {
         return SCPI_RES_ERR;
     }
+
+    const char * name_read = "LINK ERR";
+    uint32_t mask = 0;
+    Link_Read(1, &mask);
+    name_read = link_source[mask].name;
+    if(!strcmp(name_read, name))
+    {
+        SCPI_ResultCharacters(context, name_read, strlen(name_read));
+    }
+    else
+    {
+        return SCPI_RES_ERR;
+    }
     return SCPI_RES_OK;
 }
 
@@ -158,6 +171,19 @@ static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
     {
         return SCPI_RES_ERR;
     }
+
+
+    const char *name_read = "CYL ERR";
+    scpi_choice_def_t status =Cylinder_Status(1);
+    name_read = status.name;
+    if(!strcmp(name_read, name))
+    {
+        SCPI_ResultCharacters(context, name_read, strlen(name_read));
+    }
+    else
+    {
+        return SCPI_RES_ERR;
+    }
     return SCPI_RES_OK;
 }
 
@@ -186,6 +212,18 @@ static scpi_result_t SCPI_ConfigureLOCK(scpi_t *context)
     }
     SCPI_ChoiceToName(lock_source, param, &name);
     if(Lock_Write(lock_source[param]))
+    {
+        return SCPI_RES_ERR;
+    }
+
+    const char *name_read = "LOCK ERR";
+    scpi_choice_def_t status =Lock_Status();
+    name_read = status.name;
+    if(!strcmp(name_read, name))
+    {
+        SCPI_ResultCharacters(context, name_read, strlen(name_read));
+    }
+    else
     {
         return SCPI_RES_ERR;
     }
@@ -219,6 +257,18 @@ static scpi_result_t SCPI_ConfigureLED(scpi_t *context)
     }
     SCPI_ChoiceToName(led_source, param, &name);
     if(LED_Write(led_source[param]))
+    {
+        return SCPI_RES_ERR;
+    }
+
+    const char *name_read = "LED ERR";
+    scpi_choice_def_t status =LED_Status();
+    name_read = status.name;
+    if(!strcmp(name_read, name))
+    {
+        SCPI_ResultCharacters(context, name_read, strlen(name_read));
+    }
+    else
     {
         return SCPI_RES_ERR;
     }

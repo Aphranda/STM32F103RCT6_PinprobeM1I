@@ -7,7 +7,8 @@
     "settings": {
         "files.associations": {
             "scpi-def.h": "c",
-            "main.h": "c"
+            "main.h": "c",
+            "scpi_switch.h": "c"
         },
         "cSpell.words": [
             "AHBCLK",

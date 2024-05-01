@@ -206,16 +206,13 @@ void SCPITask(void *argument)
     if(strlen((const char *)usart1_buff_IsReady)>3)
     {
       // begin Scpi serve
-      
       SCPI_Input(&scpi_context, (const char *)usart1_buff_IsReady, strlen((const char *)usart1_buff_IsReady)-1);
-      
       // clear usart1_buff_IsReady
       memset((uint8_t *)usart1_buff_IsReady, 0, MAX_RX_LEN);
     }
     osMutexRelease(COMMutexHandle);
+    osDelay(10);
     HAL_IWDG_Refresh(&hiwdg);
-    osDelay(1);
-    
   }
   /* USER CODE END SCPITask */
 }
@@ -230,7 +227,8 @@ void ModBusTask(void *argument)
     osMutexWait(COMMutexHandle,osWaitForever);
     StateMachine_Input();
     osMutexRelease(COMMutexHandle);
-    osDelay(100);
+    osDelay(10);
+    HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END ModBusTask */
 }
