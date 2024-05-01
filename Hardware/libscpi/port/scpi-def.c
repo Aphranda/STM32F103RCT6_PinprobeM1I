@@ -47,7 +47,7 @@
 
 static scpi_result_t SCPI_ConfigureSwitch(scpi_t *context)
 {
-    int32_t number[2] = 0;
+    int32_t number[2] = {0,0};
     uint16_t switch_id = 1;
     SCPI_CommandNumbers(context, number, 1, 1);
     if(number[0] != 1)
@@ -125,6 +125,7 @@ static scpi_result_t SCPI_ReadLinkState(scpi_t *context)
     Link_Read(1, &mask);
     name = link_source[mask].name;
     SCPI_ResultCharacters(context, name, strlen(name));
+    return SCPI_RES_OK;
 }
 
 scpi_choice_def_t cylinder_source[] = {
@@ -140,7 +141,7 @@ scpi_choice_def_t cylinder_source[] = {
 
 static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
 {
-    int32_t number[2] = 0;
+    int32_t number[2] = {0,0};
     uint16_t cylinder_id = 1;
     SCPI_CommandNumbers(context, number, 1, 1);
     if(number[0] != 1)
@@ -166,6 +167,7 @@ static scpi_result_t SCPI_ReadCylinderState(scpi_t *context)
     scpi_choice_def_t status =Cylinder_Status(1);
     name = status.name;
     SCPI_ResultCharacters(context, name, strlen(name));
+    return SCPI_RES_OK;
 }
 
 scpi_choice_def_t lock_source[] = {
@@ -196,6 +198,7 @@ static scpi_result_t SCPI_ReadLOCKState(scpi_t *context)
     scpi_choice_def_t status =Lock_Status();
     name = status.name;
     SCPI_ResultCharacters(context, name, strlen(name));
+    return SCPI_RES_OK;
 }
 
 scpi_choice_def_t led_source[] = {
@@ -228,6 +231,7 @@ static scpi_result_t SCPI_ReadLEDState(scpi_t *context)
     scpi_choice_def_t status =LED_Status();
     name = status.name;
     SCPI_ResultCharacters(context, name, strlen(name));
+    return SCPI_RES_OK;
 }
 
 scpi_choice_def_t sys_source[] = {
@@ -246,6 +250,7 @@ static scpi_result_t SCPI_ReadSystemState(scpi_t *context)
     scpi_choice_def_t status =SYS_Status();
     name = status.name;
     SCPI_ResultCharacters(context, name, strlen(name));
+    return SCPI_RES_OK;
 }
 
 const scpi_command_t scpi_commands[] = {

@@ -12,7 +12,7 @@ typedef enum {
     Running = 3,      // Machine Hardware Error
     Emergency = 4,     // Machine Hardware Merge
     Complete = 5,
-    SYS_ERR = 6,
+    SYS_INIT = 6,
 } MachineState;
 
 
@@ -56,6 +56,7 @@ typedef struct Action_Map {
 } MachineAction;
 
 uint8_t StateMachine_Input();
+uint8_t Init_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
 uint8_t Lock_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
 uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
 uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);

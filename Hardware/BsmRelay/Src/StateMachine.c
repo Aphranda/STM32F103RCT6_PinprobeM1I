@@ -11,27 +11,30 @@ extern scpi_choice_def_t lock_source[];
 extern scpi_choice_def_t led_source[];
 
 uint16_t lock_num = 0;
-uint16_t lock_idle = Lock_Delay_num;
+uint16_t lock_idle = Lock_Delay_num; // LOCK切换的按压时间
 
 uint16_t door_ready_num = 0;
 uint16_t door_open_num = 0;
 uint16_t door_close_num = 0;
 uint16_t Release_flag = 0;
-uint8_t system_status = SYS_ERR;
+uint8_t system_status = SYS_INIT;
 uint8_t system_old_status;
 
 uint8_t StateMachine_Input()
 {
-    
+
+    // init Status
+
+    // global check
     uint8_t* I_status = InputIO_Read(CHECK_NUM);
     uint8_t in_01_08 = I_status[0];
     uint8_t in_09_16 = I_status[1];
     uint8_t* O_status = OutputIO_Read(CHECK_NUM);
     uint8_t out_01_08 = O_status[0];
     uint8_t out_09_16 = O_status[1];
-
     system_old_status = system_status;
-    
+
+    Init_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Lock_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Idle_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Ready_Action(in_01_08, in_09_16, out_01_08, out_09_16);
@@ -48,50 +51,60 @@ uint8_t StateMachine_Input()
     return 0;
 }
 
+uint8_t Init_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
+{
+    if(system_status == SYS_INIT) 
+    {
+        system_status = Lock; // 初始化完成，进入锁定状态
+    }
+    return 0;
+}
+
 uint8_t Lock_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
 {
-    if(system_status == SYS_ERR)
-    {
-        if(out_01_08&power_out)
-        {
-            system_status = Idle;
-        }
-    }else if(system_status == Lock)
+    // 状态迁移：动作状态->次级状态
+    if(system_status == Lock)
     {
         if((out_01_08&power_out))
         {
-            system_status = Idle;
+            system_status = Idle; // 锁定状态中，长按解锁按钮，触发上电开关，进入空闲状态。
+        }
+        else if(!out_01_08&power_out)
+        {
+            system_status = Lock; // 锁定状态中，解锁未触发，进入锁定状态
         }
     }
 
+    // 动作执行->任何状态下都能使用LOCK，进入锁定状态。
     uint8_t lock_ready_status = 0;
-    if(in_09_16&(power_button>>8)) // power button press
+    if(in_09_16&(power_button>>8)) // 启动按钮按下
     {
         lock_num ++;
-        if(lock_num>=Lock_Delay_num) // power button confirm
+        if(lock_num>=Lock_Delay_num) // 启动按钮按下确认
         {
             lock_ready_status = 1;
         }
     }
     else{
-        if(lock_idle>0)             // power button idle
+        if(lock_idle>0)             // 启动按钮松开
         {
-            lock_idle --;
+            lock_idle --;           // 启动按钮松开一段时间
         }
     }
+
 
     if((in_09_16&(power_button>>8)) && (lock_ready_status == 1)&&(lock_idle <= 0)) // power button must be idle, jump action.
     {
 
         if(out_01_08&power_out)
         {
-            Lock_Write(lock_source[1]); // system lock on lock to lock
+            Lock_Write(lock_source[1]); // 若系统处于解锁状态，按下按钮后，系统进入锁定状态
             system_status = Lock;
         }
         else
         {
-            Lock_Write(lock_source[0]); // system lock off lock to idle
-            LED_Write(led_source[0]);
+            Lock_Write(lock_source[0]); // 若系统处于锁定状态，按下按钮后，系统进行空闲状态，
+            LED_Write(led_source[0]);   // 清楚所有LED灯
             system_status = Idle;
         }
         lock_ready_status = 0;
@@ -103,29 +116,39 @@ uint8_t Lock_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
 
 uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
 {
+    // 判断当前状态
     if(system_status == Idle)
     {
-        if(!(out_01_08&power_out))
+        if(!(out_01_08&power_out)) 
         {
-            system_status = Lock;
+            system_status = Lock;           // 当流转至空闲状态，并且解锁使能关闭，系统进入锁定状态
         }
-        else if (out_01_08&led_yellow)
+
+        if(in_01_08&door_sensor_up)         // 系统开门完成，判定状态前提
         {
-            system_status = Ready;
+            if (out_01_08&led_yellow) 
+            {
+                system_status = Ready;      // 当开门，并且黄灯亮起，系统进入准备状态
+            }
+            else
+            {
+                system_status = Idle;       // 当开门，且黄灯熄灭，系统进入空闲状态
+            }
         }
-        // ready action door
-        if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))
+
+
+        // 动作跳转执行
+        if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))  // 同时短按两个关门按钮
         {
-            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up)) //TODO: add sender check
+            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up))      // 若不在执行关闭动作，且门处于打开状态，进行动作跳转准备
             {
                 door_ready_num ++;
             }
         }
-
-        if((door_ready_num >= Door_Delay_num)&&(Release_flag<=0))                   // door action ready num
+        if((door_ready_num >= Door_Delay_num)&&(Release_flag<=0))       // door action ready num
         {
             LED_Write(led_source[3]);
-            system_status = Ready;                             // door action ready
+            system_status = Ready;                                      // door action ready
         }
     }
     return 0;
@@ -133,21 +156,30 @@ uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
 
 uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
 {
+    // 判断当前状态
     if(system_status == Ready)
     {
-        if(!(out_01_08&led_yellow))
+        if(!(out_01_08&led_yellow)) 
         {
-            system_status = Idle;
+            system_status = Idle;                                       // 在准备状态时，黄灯熄灭，回到空闲状态
         }
-        else if((out_01_08&door_close)&&(!(in_01_08&door_sensor_down)))
+        else 
         {
-            system_status = Running;
+            if((out_01_08&door_close)&&(!(in_01_08&door_sensor_down))) 
+            {
+                system_status = Running;                                // 黄灯亮起，在执行关门动作，且还未关门完成时，系统处于运动状态
+            }
+            else if((out_01_08&door_open)&&(in_01_08&door_sensor_up))
+            {
+                system_status = Ready;                                  // 黄灯亮起，执行开门动作，并且开门完成时，系统处于准备状态
+            }
         }
+
+        // 动作跳转执行
         uint8_t door_ready_status = 0;
-        // ready action door
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))
         {
-            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up)&&(Release_flag<=0)) //TODO: add sensor check
+            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up)&&(Release_flag<=0))
             {
                 door_close_num ++;
             }
@@ -156,10 +188,10 @@ uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint
                 door_ready_status = 1;                              // door action ready
             }
         }
-        // if system is Idle, map to ready
+
         if(((in_09_16&(door_button1>>8))&&(in_09_16&(door_button2>>8)))&&(door_ready_status ==1)&&(Release_flag<=0))
         {
-            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up)) // TODO: add door sensor check
+            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up))
             {
                 Cylinder_Write(1, cylinder_source[0]); // door closing
                 door_close_num = 0;
@@ -176,7 +208,42 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
 {
     if(system_status == Running)
     {
-        uint8_t door_idle_status = 0;
+        if(out_01_08&door_close) //气缸回缩
+        {
+            if(in_01_08&door_sensor_down)   // 触发后限位传感
+            {
+                LED_Write(led_source[1]);   // 绿灯亮起，关门完毕，进入软件测试流程
+                system_status = Complete;   // 气缸到达后限位
+            }
+            system_status = Running;        // 气缸回缩中
+        }
+        if(out_01_08&door_open)             // 气缸伸出
+        {
+            if(in_01_08&door_sensor_up)     // 触发前限位传感
+            {
+                LED_Write(led_source[0]);   // 在关门运行过程中，强制开门
+                system_status = Idle;       // 气缸到达前限位，进入空闲状态
+            }
+            system_status = Running;        // 气缸伸出中
+        }
+    }
+    return 0;
+}
+
+uint8_t Complete_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
+{
+    if(system_status == Complete)
+    {
+        if(out_01_08&door_open) // 气缸伸出
+        {
+            if(in_01_08&door_sensor_up) // 触发前限位传感
+            {
+                LED_Write(led_source[0]);
+                system_status = Idle; // 气缸到达前限位
+            }
+        }
+
+        uint8_t door_complete_status = 0;
         // ready action door
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))
         {
@@ -186,60 +253,23 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
             }
             if(door_open_num >= Door_Delay_num/2)                   // door action read num
             {
-                door_idle_status = 1;                              // door action ready
+                door_complete_status = 1;                              // door action ready
             }
         }
-        if(((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))&& (door_idle_status ==1)&&(Release_flag<=0))
+        if(((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))&& (door_complete_status ==1)&&(Release_flag<=0))
         {
             if(!(out_01_08&door_open))
             {
                 Cylinder_Write(1, cylinder_source[1]);  // door opening
                 LED_Write(led_source[0]);
                 door_open_num = 0;
-                door_idle_status = 0;
+                door_complete_status = 0;
                 Release_flag = Door_Delay_num;
                 system_status = Idle;
             }
         }
-        if(out_01_08&door_close) //气缸回缩
-        {
-            if(in_01_08&door_sensor_down) // 触发后限位传感
-            {
-                system_status = Complete; // 气缸到达后限位
-            }
-            else
-            {
-                system_status = Running; // 气缸回缩中
-            }
-        }
-
-        if(out_01_08&door_open) // 气缸伸出
-        {
-            LED_Write(led_source[0]);
-            if(in_01_08&door_sensor_up) // 触发前限位传感
-            {
-                system_status = Idle; // 气缸到达前限位
-            }
-            system_status = Running; // 气缸回缩中
-        }
+    }
     return 0;
-    }
-}
-
-uint8_t Complete_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
-{
-    if(system_status == Complete)
-    {
-        if(out_01_08&door_open) // 气缸伸出
-        {
-            LED_Write(led_source[0]);
-            if(in_01_08&door_sensor_up) // 触发前限位传感
-            {
-                system_status = Idle; // 气缸到达前限位
-            }
-            system_status = Running; // 气缸回缩中
-        }
-    }
 }
 
 uint8_t Emerge_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
@@ -279,6 +309,7 @@ uint8_t Release_detection(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08,
             Release_flag --;
         }
     }
+    return 0;
 }
 
 uint8_t showStatus()
