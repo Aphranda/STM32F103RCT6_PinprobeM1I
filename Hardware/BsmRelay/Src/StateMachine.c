@@ -105,7 +105,7 @@ uint8_t Lock_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
         else
         {
             Lock_Write(lock_source[0]); // 若系统处于锁定状态，按下按钮后，系统进行空闲状态，
-            LED_Write(led_source[0]);   // 清楚所有LED灯
+            LED_Write(led_source[0]);   // 清除所有LED灯
             system_status = Idle;
         }
         lock_ready_status = 0;
@@ -136,8 +136,11 @@ uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
                 system_status = Idle;       // 当开门，且黄灯熄灭，系统进入空闲状态
             }
         }
-
-
+        else if (in_01_08&door_sensor_down) // 系统关门完成
+        {
+            system_status = Complete;
+        }
+        
         // 动作跳转执行
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))  // 同时短按两个关门按钮
         {
@@ -216,16 +219,22 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
                 LED_Write(led_source[1]);   // 绿灯亮起，关门完毕，进入软件测试流程
                 system_status = Complete;   // 气缸到达后限位
             }
-            system_status = Running;        // 气缸回缩中
+            else{
+                system_status = Running;        // 气缸回缩中
+            }
+            
         }
         if(out_01_08&door_open)             // 气缸伸出
         {
             if(in_01_08&door_sensor_up)     // 触发前限位传感
             {
-                LED_Write(led_source[0]);   // 在关门运行过程中，强制开门
+                //LED_Write(led_source[0]);   // 在关门运行过程中，强制开门
                 system_status = Idle;       // 气缸到达前限位，进入空闲状态
             }
-            system_status = Running;        // 气缸伸出中
+            else{
+                system_status = Running;        // 气缸伸出中
+            }
+
         }
     }
     return 0;
@@ -277,11 +286,15 @@ uint8_t Emerge_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uin
 {
     if(system_status == Emergency)
     {
-        if((in_01_08&laser_sensor1)&&(in_01_08&laser_sensor2)&&(in_01_08&laser_sensor3)&&(in_09_16&(laser_sensor4>>8))&&(out_01_08&door_open)&&((in_09_16&(stop_button>>8))))
+        if(((in_01_08&laser_sensor1) != 0x20)||((in_01_08&laser_sensor2) != 0x40)||((in_01_08&laser_sensor3) != 0x80)||((in_09_16&(laser_sensor4>>8) != 0x01)))
         {
             system_status = Lock;
-            LED_Write(led_source[0]);
+            if(in_01_08&door_sensor_up)
+            {
+                LED_Write(led_source[0]);
+            }
         }
+
     }
 
     if((in_09_16&(stop_button>>8))!=0x08)
@@ -291,7 +304,8 @@ uint8_t Emerge_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uin
         Lock_Write(lock_source[1]);
         LED_Write(led_source[2]);
     }
-    else if(((in_01_08&laser_sensor1)!=0x20)||((in_01_08&laser_sensor2)!=0x40)||((in_01_08&laser_sensor3)!=0x80)||((in_09_16&(laser_sensor4>>8)!=0x01)))
+    else if(((in_01_08&laser_sensor1)==0x20)||((in_01_08&laser_sensor2)==0x40)||((in_01_08&laser_sensor3)==0x80)||((in_09_16&(laser_sensor4>>8) ==
+     0x01)))
     {
         system_status = Emergency;
         Cylinder_Write(1,cylinder_source[1]);
