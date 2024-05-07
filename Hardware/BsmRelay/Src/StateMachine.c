@@ -144,7 +144,7 @@ uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
         // 动作跳转执行
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))  // 同时短按两个关门按钮
         {
-            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up))      // 若不在执行关闭动作，且门处于打开状态，进行动作跳转准备
+            if(!(out_01_08&door_close))      // 若不在执行关闭动作，且门处于打开状态，进行动作跳转准备
             {
                 door_ready_num ++;
             }
@@ -183,7 +183,7 @@ uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint
         uint8_t door_ready_status = 0;
         if((in_09_16&(door_button1>>8))||(in_09_16&(door_button2>>8)))
         {
-            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up)&&(Release_flag<=0))
+            if(!(out_01_08&door_close)&&(Release_flag<=0))
             {
                 door_close_num ++;
             }
@@ -195,7 +195,7 @@ uint8_t Ready_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint
 
         if(((in_09_16&(door_button1>>8))&&(in_09_16&(door_button2>>8)))&&(door_ready_status ==1)&&(Release_flag<=0))
         {
-            if(!(out_01_08&door_close)&&(in_01_08&door_sensor_up))
+            if(!(out_01_08&door_close))
             {
                 Cylinder_Write(1, cylinder_source[0]); // door closing
                 door_close_num = 0;
