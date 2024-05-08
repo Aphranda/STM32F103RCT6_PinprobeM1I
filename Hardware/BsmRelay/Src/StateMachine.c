@@ -3,7 +3,7 @@
 #include "cmsis_os.h"
 
 #define Lock_Delay_num 3
-#define Door_Delay_num 10
+#define Door_Delay_num 3
 #define Debug
 
 extern scpi_choice_def_t cylinder_source[];
@@ -20,6 +20,9 @@ uint16_t Release_flag = 0;
 uint8_t system_status = SYS_INIT;
 uint8_t system_old_status;
 
+uint8_t door_status = Door_Mid;
+uint8_t door_old_status;
+
 uint8_t StateMachine_Input()
 {
 
@@ -34,6 +37,7 @@ uint8_t StateMachine_Input()
     uint8_t out_09_16 = O_status[1];
     
     system_old_status = system_status;
+    door_old_status = door_status;
 
     Init_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Lock_Action(in_01_08, in_09_16, out_01_08, out_09_16);
@@ -43,11 +47,18 @@ uint8_t StateMachine_Input()
     Complete_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Emerge_Action(in_01_08, in_09_16, out_01_08, out_09_16);
     Release_detection(in_01_08, in_09_16, out_01_08, out_09_16);
+    Door_detection(in_01_08, in_09_16, out_01_08, out_09_16);
     
     if(system_status != system_old_status)
     {
         showStatus();
         system_old_status = system_status;
+    }
+
+    if(door_status != door_old_status)
+    {
+        showDoorStatus();
+        door_old_status = door_status;
     }
     return 0;
 }
@@ -96,10 +107,10 @@ uint8_t Lock_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
 
     if((in_09_16&(power_button>>8)) && (lock_ready_status == 1)&&(lock_idle <= 0)) // power button must be idle, jump action.
     {
-
         if(out_01_08&power_out)
         {
             Lock_Write(lock_source[1]); // 若系统处于解锁状态，按下按钮后，系统进入锁定状态
+            LED_Write(led_source[0]);   // 清除所有LED灯
             system_status = Lock;
         }
         else
@@ -152,7 +163,8 @@ uint8_t Idle_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8
         if((door_ready_num >= Door_Delay_num)&&(Release_flag<=0))       // door action ready num
         {
             LED_Write(led_source[3]);
-            system_status = Ready;                                      // door action ready
+            system_status = Ready;  // door action ready
+            door_ready_num = 0;  
         }
     }
     return 0;
@@ -224,18 +236,6 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
             }
             
         }
-        if(out_01_08&door_open)             // 气缸伸出
-        {
-            if(in_01_08&door_sensor_up)     // 触发前限位传感
-            {
-                //LED_Write(led_source[0]);   // 在关门运行过程中，强制开门
-                system_status = Idle;       // 气缸到达前限位，进入空闲状态
-            }
-            else{
-                system_status = Running;        // 气缸伸出中
-            }
-
-        }
     }
     return 0;
 }
@@ -271,11 +271,9 @@ uint8_t Complete_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, u
             if(!(out_01_08&door_open))
             {
                 Cylinder_Write(1, cylinder_source[1]);  // door opening
-                LED_Write(led_source[0]);
                 door_open_num = 0;
                 door_complete_status = 0;
                 Release_flag = Door_Delay_num;
-                system_status = Idle;
             }
         }
     }
@@ -327,6 +325,18 @@ uint8_t Release_detection(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08,
     return 0;
 }
 
+uint8_t Door_detection(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16)
+{
+    if((out_01_08&door_close)&&(in_01_08&door_sensor_down))
+    {
+        door_status = Door_Closed;
+    }
+    else if((out_01_08&door_open)&&(in_01_08&door_sensor_up))
+    {
+        door_status = Door_Opened;
+    }
+    return 0;
+}
 uint8_t showStatus()
 {
     #ifdef Debug
@@ -339,7 +349,7 @@ uint8_t showStatus()
         U1_Printf("IDLE\r\n");
         break;
     case 2:
-        U1_Printf("READY\r\n");
+        U1_Printf("READY\r\n"); // READY
         break;
     case 3:
         U1_Printf("RUNNING\r\n");
@@ -348,11 +358,29 @@ uint8_t showStatus()
         U1_Printf("EMERGENCY\r\n");
         break;
     case 5:
-        U1_Printf("COMPLETE\r\n");
+        U1_Printf("COMPLETE\r\n"); //COMPLETE
         break;
     default:
         break;
     }
     #endif // DEBUG
+    return 0;
+}
+
+uint8_t showDoorStatus(){
+    switch (door_status)
+    {
+        case 0:
+            U1_Printf("CLOSED\r\n");
+            break;
+        case 1:
+            U1_Printf("OPENED\r\n");
+            break;
+        case 2:
+            U1_Printf("MID\r\n");
+            break;
+        default:
+            break;
+    }
     return 0;
 }

@@ -227,7 +227,7 @@ void ModBusTask(void *argument)
     osMutexWait(COMMutexHandle,osWaitForever);
     StateMachine_Input();
     osMutexRelease(COMMutexHandle);
-    osDelay(10);
+    osDelay(50);
     HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END ModBusTask */

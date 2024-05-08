@@ -42,8 +42,9 @@ typedef enum {
 } SafeSensorState;
 
 typedef enum {
-    Up = 0,             // Cylinder is UP
-    Down = 1,            // Cylinder is Mid          // Cylinder is Down
+    Door_Closed = 0,          // Cylinder is Down
+    Door_Opened = 1,         // Cylinder is Up
+    Door_Mid = 2,           // Cylinder is Mid          
 } CylinderState;
 
 typedef struct Action_Map {
@@ -64,6 +65,8 @@ uint8_t Running_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, ui
 uint8_t Complete_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
 uint8_t Emerge_Action(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
 uint8_t Release_detection(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
+uint8_t Door_detection(uint8_t in_01_08, uint8_t in_09_16, uint8_t out_01_08, uint8_t out_09_16);
 uint8_t showStatus();
+uint8_t showDoorStatus();
 
 #endif /* __STATEMACHINE_H */
