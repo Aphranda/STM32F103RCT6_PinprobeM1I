@@ -123,6 +123,7 @@ static scpi_result_t SCPI_ConfigureLink(scpi_t *context)
     if(!strcmp(name_read, name))
     {
         SCPI_ResultCharacters(context, name_read, strlen(name_read));
+        context->first_output = 0;
     }
     else
     {
@@ -137,7 +138,9 @@ static scpi_result_t SCPI_ReadLinkState(scpi_t *context)
     uint32_t mask = 0;
     Link_Read(1, &mask);
     name = link_source[mask].name;
+    
     SCPI_ResultCharacters(context, name, strlen(name));
+    
     return SCPI_RES_OK;
 }
 
@@ -177,6 +180,7 @@ static scpi_result_t SCPI_ConfigureCylinder(scpi_t *context)
     scpi_choice_def_t status =Cylinder_Status(1);
     name_read = status.name;
     SCPI_ResultCharacters(context, name_read, strlen(name_read));
+    context->first_output = 0;
     return SCPI_RES_OK;
 }
 
@@ -213,6 +217,7 @@ static scpi_result_t SCPI_ConfigureLOCK(scpi_t *context)
     scpi_choice_def_t status =Lock_Status();
     name_read = status.name;
     SCPI_ResultCharacters(context, name_read, strlen(name_read));
+    context->first_output = 0;
     return SCPI_RES_OK;
 }
 
@@ -252,7 +257,7 @@ static scpi_result_t SCPI_ConfigureLED(scpi_t *context)
     name_read = status.name;
 
     SCPI_ResultCharacters(context, name_read, strlen(name_read));
-
+    context->first_output = 0;
     return SCPI_RES_OK;
 }
 
